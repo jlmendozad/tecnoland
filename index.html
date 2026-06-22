@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Panel de administración de inventario de Tecnoland" />
+  <title>Tecnoland — Inventario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">N</div>
+        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones</small></div>
+      </div>
+      <nav class="main-nav" aria-label="Navegación principal">
+        <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
+        <a href="#" class="nav-item active"><span data-icon="box"></span>Inventario <b id="navStockBadge">3</b></a>
+        <a href="#" class="nav-item"><span data-icon="bag"></span>Pedidos</a>
+        <a href="#" class="nav-item"><span data-icon="truck"></span>Entregas</a>
+        <div class="nav-label">Administración</div>
+        <a href="#" class="nav-item"><span data-icon="users"></span>Socios</a>
+        <a href="#" class="nav-item"><span data-icon="settings"></span>Configuración</a>
+      </nav>
+      <div class="sidebar-card">
+        <span data-icon="spark"></span>
+        <div><strong>Todo al día</strong><small>Última sincronización<br>hace 2 minutos</small></div>
+      </div>
+      <div class="user-card">
+        <div class="avatar">JM</div>
+        <div><strong>José Mendoza</strong><small>Administrador</small></div>
+        <button aria-label="Más opciones">•••</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menuButton" aria-label="Abrir menú"><span data-icon="menu"></span></button>
+        <div class="global-search"><span data-icon="search"></span><input id="searchInput" type="search" placeholder="Buscar por nombre, SKU o categoría..." /></div>
+        <div class="top-actions">
+          <button class="icon-button notification" aria-label="Notificaciones"><span data-icon="bell"></span><i></i></button>
+          <button class="primary-button" id="addProductButton"><span>＋</span> Nuevo producto</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-heading">
+          <div><p class="eyebrow">OPERACIONES / INVENTARIO</p><h1>Gestión de inventario</h1><p>Controla existencias, costos y rentabilidad en un solo lugar.</p></div>
+          <button class="secondary-button" id="exportButton"><span data-icon="download"></span> Exportar</button>
+        </div>
+
+        <section class="hero-metric">
+          <div class="metric-icon blue"><span data-icon="wallet"></span></div>
+          <div><small>VALOR DEL INVENTARIO <span class="info">i</span></small><strong id="inventoryCost">Q0.00</strong><em>Basado en costo de adquisición</em></div>
+          <div class="metric-divider"></div>
+          <div class="metric-icon green"><span data-icon="trend"></span></div>
+          <div><small>MARGEN POTENCIAL</small><strong class="positive" id="potentialMargin">Q0.00</strong><em id="marginPercent">0% de rentabilidad estimada</em></div>
+          <div class="hero-decoration"></div>
+        </section>
+
+        <section class="stat-grid">
+          <article class="stat-card"><div><small>UNIDADES EN STOCK</small><strong id="totalUnits">0</strong><p class="positive">↗ Inventario disponible</p></div><span class="stat-icon lavender" data-icon="layers"></span></article>
+          <article class="stat-card warning-card"><div><small>BAJO STOCK</small><strong id="lowStock">0</strong><p>Requieren tu atención</p></div><span class="stat-icon amber" data-icon="alert"></span></article>
+          <article class="stat-card"><div><small>VALOR A PRECIO DE VENTA</small><strong id="retailValue">Q0.00</strong><p>Ingreso potencial total</p></div><span class="stat-icon mint" data-icon="tag"></span></article>
+          <article class="stat-card"><div><small>PRODUCTOS ACTIVOS</small><strong id="activeProducts">0</strong><p><span class="status-dot"></span> Catálogo publicado</p></div><span class="stat-icon blue-soft" data-icon="check"></span></article>
+        </section>
+
+        <section class="inventory-panel">
+          <div class="panel-header">
+            <div><h2>Productos</h2><p id="resultCount">0 productos en el catálogo</p></div>
+            <div class="filters">
+              <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option></select>
+              <select id="stockFilter" aria-label="Filtrar por stock"><option value="all">Todo el stock</option><option value="low">Bajo stock</option><option value="available">Disponible</option><option value="out">Agotado</option></select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PRODUCTO</th><th>CATEGORÍA</th><th>COLOR</th><th>COSTO</th><th>PRECIO</th><th>MARGEN</th><th>STOCK</th><th>VALOR (COSTO)</th><th></th></tr></thead>
+              <tbody id="productTable"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" hidden><span data-icon="search"></span><h3>No encontramos productos</h3><p>Prueba con otro término o ajusta los filtros.</p></div>
+          </div>
+          <div class="panel-footer"><span id="footerCount"></span><div><button disabled>‹</button><button class="current">1</button><button disabled>›</button></div></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="productModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header"><div><p class="eyebrow">CATÁLOGO</p><h2 id="modalTitle">Nuevo producto</h2></div><button class="icon-button" id="closeModal" aria-label="Cerrar">×</button></div>
+      <form id="productForm">
+        <input type="hidden" id="productId" />
+        <div class="form-grid">
+          <label class="span-2">Nombre del producto<input id="productName" required placeholder="Ej. Audífonos inalámbricos" /></label>
+          <label>SKU<input id="productSku" required placeholder="TEC-AUD-001" /></label>
+          <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
+          <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
+          <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
+          <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
+          <label>Stock actual<input id="productStock" required type="number" min="0" step="1" /></label>
+          <label>Alerta de stock bajo<input id="productThreshold" required type="number" min="0" step="1" value="5" /></label>
+          <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
+        </div>
+        <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
+        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
+  <script src="app.js"></script>
+</body>
+</html>

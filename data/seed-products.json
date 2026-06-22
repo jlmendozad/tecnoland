@@ -1,0 +1,8 @@
+[
+  {"id":1,"name":"Audífonos Pulse Pro","sku":"AUD-PLS-PRO","category":"Audio","productColor":"Negro","cost":42.5,"price":69.99,"stock":18,"threshold":6,"emoji":"🎧","themeColor":"#e5e9f5","description":"Audio inalámbrico con cancelación de ruido."},
+  {"id":2,"name":"Smartwatch Axis S4","sku":"WAT-AXS-S4","category":"Wearables","productColor":"Grafito","cost":58,"price":94.5,"stock":4,"threshold":5,"emoji":"⌚","themeColor":"#e1edf0","description":"Reloj inteligente con monitoreo deportivo."},
+  {"id":3,"name":"Hub USB-C Connect 7","sku":"ACC-HUB-007","category":"Accesorios","productColor":"Gris espacial","cost":19.25,"price":34.99,"stock":32,"threshold":8,"emoji":"🔌","themeColor":"#ece9e3","description":"Siete puertos en un diseño compacto."},
+  {"id":4,"name":"Teclado mecánico K87","sku":"PER-KEY-K87","category":"Periféricos","productColor":"Blanco","cost":36.4,"price":59.9,"stock":3,"threshold":5,"emoji":"⌨️","themeColor":"#e8e6f1","description":"Teclado compacto con switches táctiles."},
+  {"id":5,"name":"Cargador GaN 65W","sku":"PWR-GAN-65","category":"Energía","productColor":"Negro","cost":21,"price":37.5,"stock":0,"threshold":6,"emoji":"🔋","themeColor":"#e5eee8","description":"Carga rápida para teléfonos y laptops."},
+  {"id":6,"name":"Webcam Vision 2K","sku":"VID-WEB-2K","category":"Video","productColor":"Negro","cost":31.75,"price":54.99,"stock":11,"threshold":4,"emoji":"📷","themeColor":"#e7ebee","description":"Videollamadas nítidas y enfoque automático."}
+]

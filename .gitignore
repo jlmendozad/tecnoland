@@ -1,0 +1,7 @@
+# Base de datos de operación: nunca debe reemplazarse al publicar código.
+data/inventory.json
+data/inventory-history.jsonl
+data/*.tmp
+.vercel
+.env*
+node_modules/

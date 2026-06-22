@@ -1,0 +1,35 @@
+# Tecnoland Admin
+
+Primer módulo funcional del sistema: gestión de inventario.
+
+## Ejecutar
+
+```bash
+npm start
+```
+
+Abre `http://127.0.0.1:3001`.
+
+## Persistencia de datos
+
+En producción, Tecnoland usa PostgreSQL administrado por Supabase. Las tablas `products` e `inventory_history` se crean con:
+
+```bash
+npm run db:init
+```
+
+Vercel inyecta de forma segura las variables de conexión de Supabase; `.env.local` nunca se publica en Git.
+
+### Desarrollo local
+
+El inventario se guarda en `data/inventory.json` y cada movimiento se registra en `data/inventory-history.jsonl`. Ambos archivos están excluidos de Git, por lo que publicar cambios de código no reemplaza los datos ni su historial.
+
+`data/seed-products.json` contiene únicamente los datos iniciales para una instalación nueva. Puedes montar `data/` como volumen persistente o indicar otra ubicación con la variable `DATA_DIR`:
+
+```bash
+DATA_DIR=/ruta/persistente npm start
+```
+
+Al abrir esta versión por primera vez, los productos guardados por la versión anterior en el navegador se migran automáticamente a la base del servidor.
+
+El archivo JSON persistente se conserva únicamente como alternativa local. El despliegue de Vercel usa Supabase, por lo que publicar una versión nueva no reemplaza productos ni historial.
