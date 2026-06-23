@@ -19,8 +19,8 @@
       </div>
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
-        <a href="#" class="nav-item active"><span data-icon="box"></span>Inventario <b id="navStockBadge">3</b></a>
-        <a href="#" class="nav-item"><span data-icon="bag"></span>Pedidos</a>
+        <a href="#" class="nav-item active" id="inventoryNav"><span data-icon="box"></span>Inventario <b id="navStockBadge">3</b></a>
+        <a href="#" class="nav-item" id="ordersNav"><span data-icon="bag"></span>Pedidos</a>
         <a href="#" class="nav-item"><span data-icon="truck"></span>Entregas</a>
         <div class="nav-label">Administración</div>
         <a href="#" class="nav-item" id="partnersNav"><span data-icon="users"></span>Socios</a>
@@ -49,6 +49,60 @@
       </header>
 
       <section class="content">
+        <section id="ordersSection" hidden>
+          <div class="page-heading">
+            <div><p class="eyebrow">OPERACIONES / PEDIDOS</p><h1>Crear Nuevo Pedido</h1><p>Registra el cliente, agrega productos y descuenta inventario al confirmar.</p></div>
+            <div class="top-actions"><button class="secondary-button" id="backToInventory">Volver a inventario</button><button class="primary-button" id="openNewOrder">＋ Nuevo pedido</button></div>
+          </div>
+          <div class="order-grid">
+            <section class="order-card">
+              <h2>Información del cliente</h2>
+              <div class="form-grid order-form">
+                <label class="span-2">Nombre completo<input id="orderCustomerName" placeholder="Ej. Roberto Gómez" /></label>
+                <label>Teléfono<input id="orderCustomerPhone" placeholder="+502 0000 0000" /></label>
+                <label>Dirección<textarea id="orderCustomerAddress" rows="3" placeholder="Calle, zona, referencias..."></textarea></label>
+                <label class="span-2">Notas para el cliente<textarea id="orderCustomerNote" rows="3" placeholder="Mensaje visible al cliente"></textarea></label>
+                <label class="span-2">Notas internas<textarea id="orderInternalNote" rows="3" placeholder="Recordatorios para socios"></textarea></label>
+              </div>
+            </section>
+            <section class="order-card">
+              <h2>Checkout</h2>
+              <div class="form-grid order-form">
+                <label>Método de pago<select id="orderPaymentMethod"><option value="transfer">Transferencia</option><option value="courier">Cobro por courier</option></select></label>
+                <label>Estado<select id="orderStatus"><option value="pending">Pendiente de entrega al courier</option><option value="courier">En courier</option><option value="delivered">Entregado</option><option value="returned">Devuelto/Rechazado</option></select></label>
+                <label>Courier<input id="orderCourierCompany" placeholder="Empresa de entrega" /></label>
+                <label>Tracking<input id="orderTrackingNumber" placeholder="Número de tracking" /></label>
+                <label>Fecha entrega al courier<input id="orderCourierHandoffAt" type="date" /></label>
+                <label>Entrega estimada<input id="orderEstimatedDeliveryAt" type="date" /></label>
+                <label class="span-2">Descuento (Q)<input id="orderDiscount" type="number" min="0" step="0.01" value="0" /></label>
+              </div>
+            </section>
+          </div>
+          <section class="inventory-panel order-products-panel">
+            <div class="panel-header">
+              <div><h2>Selección de productos</h2><p id="orderProductCount">0 items seleccionados</p></div>
+              <button class="secondary-button" id="addOrderItem">Agregar producto</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>PRODUCTO</th><th>CANT.</th><th>UNITARIO</th><th>SUBTOTAL</th><th></th></tr></thead>
+                <tbody id="orderItemsTable"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="order-summary">
+            <div><small>Subtotal</small><strong id="orderSubtotal">Q0.00</strong></div>
+            <div><small>Costo total</small><strong id="orderCost">Q0.00</strong></div>
+            <div><small>Margen</small><strong id="orderMargin">Q0.00</strong></div>
+            <div><small>Total</small><strong id="orderTotal">Q0.00</strong></div>
+            <div class="modal-actions"><button class="secondary-button" id="cancelOrder">Cancelar</button><button class="primary-button" id="confirmOrder">Confirmar pedido</button></div>
+          </section>
+          <section class="inventory-panel" style="margin-top:18px">
+            <div class="panel-header"><div><h2>Pedidos recientes</h2><p>Últimos 20 movimientos</p></div></div>
+            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+          </section>
+        </section>
+        <section id="inventorySection">
         <div class="page-heading">
           <div><p class="eyebrow">OPERACIONES / INVENTARIO</p><h1>Gestión de inventario</h1><p>Controla existencias, costos y rentabilidad en un solo lugar.</p></div>
           <button class="secondary-button" id="exportButton"><span data-icon="download"></span> Exportar</button>
@@ -87,8 +141,21 @@
           </div>
           <div class="panel-footer"><span id="footerCount"></span><div><button disabled>‹</button><button class="current">1</button><button disabled>›</button></div></div>
         </section>
+        </section>
       </section>
     </main>
+  </div>
+  <div class="modal-backdrop" id="orderItemModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="orderItemTitle">
+      <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderItemTitle">Agregar producto</h2></div><button class="icon-button" id="closeOrderItemModal" aria-label="Cerrar">×</button></div>
+      <form id="orderItemForm">
+        <div class="form-grid">
+          <label class="span-2">Producto<select id="orderItemProduct"></select></label>
+          <label>Cantidad<input id="orderItemQuantity" type="number" min="1" step="1" value="1" /></label>
+        </div>
+        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelOrderItemModal">Cancelar</button><button type="submit" class="primary-button">Agregar</button></div>
+      </form>
+    </section>
   </div>
 
   <div class="modal-backdrop" id="productModal" hidden>

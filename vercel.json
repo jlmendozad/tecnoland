@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/products/:route*", "destination": "/api/products?route=:route*" }
+    { "source": "/api/products/:route*", "destination": "/api/products?route=:route*" },
+    { "source": "/api/users/:route*", "destination": "/api/users?route=:route*" },
+    { "source": "/api/auth/:route*", "destination": "/api/auth?route=:route*" },
+    { "source": "/api/orders/:route*", "destination": "/api/orders?route=:route*" }
   ]
 }
