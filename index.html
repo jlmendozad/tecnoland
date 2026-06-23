@@ -140,7 +140,13 @@
 
         <section class="inventory-panel">
           <div class="panel-header">
-            <div><h2>Productos</h2><p id="resultCount">0 productos en el catálogo</p></div>
+            <div class="panel-title-row">
+              <div><h2>Productos</h2><p id="resultCount">0 productos en el catálogo</p></div>
+              <div class="inline-search">
+                <span data-icon="search"></span>
+                <input id="productSearch" type="search" placeholder="Buscar producto, SKU o color..." />
+              </div>
+            </div>
             <div class="filters">
               <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option></select>
               <select id="stockFilter" aria-label="Filtrar por stock"><option value="all">Todo el stock</option><option value="low">Bajo stock</option><option value="available">Disponible</option><option value="out">Agotado</option></select>
