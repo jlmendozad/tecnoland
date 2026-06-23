@@ -4,19 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Panel de administración de inventario de Tecnoland" />
-  <meta name="app-version" content="2.0" />
+  <meta name="app-version" content="2.1" />
   <title>Tecnoland — Inventario</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.0" />
+  <link rel="stylesheet" href="styles.css?v=2.1" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark">N</div>
-        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.0</small></div>
+        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.1</small></div>
       </div>
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
@@ -190,8 +190,8 @@
       <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderItemTitle">Agregar producto</h2></div><button class="icon-button" id="closeOrderItemModal" aria-label="Cerrar">×</button></div>
       <form id="orderItemForm">
         <div class="form-grid">
-          <label class="span-2">Buscar producto<input id="orderItemSearch" type="search" placeholder="Buscar por nombre o SKU..." autocomplete="off" /></label>
-          <label class="span-2">Producto<select id="orderItemProduct"></select></label>
+          <div class="span-2 order-product-search-field"><label for="orderItemSearch">Buscar producto</label><div class="order-product-search"><input id="orderItemSearch" type="search" placeholder="Buscar por nombre o SKU..." autocomplete="off" /><div class="order-product-results" id="orderItemSearchResults" hidden></div></div></div>
+          <input id="orderItemProduct" type="hidden" />
           <label>Cantidad<input id="orderItemQuantity" type="number" min="1" step="1" value="1" /></label>
         </div>
         <div class="product-preview-box" id="orderProductPreview">
@@ -329,6 +329,6 @@
   </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous" onerror="this.src='https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'"></script>
-  <script src="app.js?v=2.0"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>

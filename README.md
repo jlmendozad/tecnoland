@@ -18,6 +18,8 @@ La sección Entregas resume pedidos en tránsito, cancelados y entregados; permi
 
 Los modales distinguen un clic real en el fondo de una selección arrastrada desde un campo. El selector de productos de pedidos incluye búsqueda por nombre o SKU y actualiza la vista previa e imagen al cambiar la selección.
 
+El selector de productos muestra resultados visuales desplegables y reinicia la cantidad en uno. Desde el detalle de un pedido se puede actualizar el estado, registrar el monto cobrado por courier y adjuntar información o una fotografía de la boleta.
+
 ## Ejecutar
 
 ```bash

@@ -31,6 +31,9 @@ async function orderResponse(orderId) {
     courierHandoffAt: order.courier_handoff_at,
     estimatedDeliveryAt: order.estimated_delivery_at,
     deliveredAt: order.delivered_at,
+    courierAmountReceived: Number(order.courier_amount_received || 0),
+    receiptInfo: order.receipt_info || '',
+    receiptImageUrl: order.receipt_image_url || '',
     createdAt: order.created_at,
     createdByUserId: order.created_by_user_id,
     items: items.map(item => ({ id: Number(item.id), productId: item.product_id, sku: item.sku, productName: item.product_name, productColor: item.product_color, quantity: item.quantity, unitCost: Number(item.unit_cost), unitPrice: Number(item.unit_price), subtotal: Number(item.subtotal) }))
@@ -63,6 +66,8 @@ module.exports = async function handler(request, response) {
         paymentMethod: row.payment_method, deliveryMethod: row.delivery_method,
         courierHandoffAt: row.courier_handoff_at, estimatedDeliveryAt: row.estimated_delivery_at,
         deliveredAt: row.delivered_at, createdAt: row.created_at,
+        courierAmountReceived: Number(row.courier_amount_received || 0),
+        receiptInfo: row.receipt_info || '',
         items: itemsByOrder.get(String(row.id)) || []
       })));
     }
@@ -112,10 +117,10 @@ module.exports = async function handler(request, response) {
     const id = Number(route);
     if (!Number.isFinite(id)) return response.status(404).json({ error: 'Ruta no encontrada.' });
     if (request.method === 'PATCH') {
-      const { status, courierCompany, trackingNumber, courierHandoffAt, estimatedDeliveryAt, deliveredAt } = request.body || {};
+      const { status, courierCompany, trackingNumber, courierHandoffAt, estimatedDeliveryAt, deliveredAt, courierAmountReceived, receiptInfo, receiptImageUrl } = request.body || {};
       const { rows: [updated] } = await pool.query(
-        `update orders set status=coalesce($2,status), courier_company=coalesce($3,courier_company), tracking_number=coalesce($4,tracking_number), courier_handoff_at=coalesce($5,courier_handoff_at), estimated_delivery_at=coalesce($6,estimated_delivery_at), delivered_at=coalesce($7,delivered_at), updated_at=now() where id=$1 returning *`,
-        [id, status, courierCompany, trackingNumber, courierHandoffAt || null, estimatedDeliveryAt || null, deliveredAt || null]
+        `update orders set status=coalesce($2,status), courier_company=coalesce($3,courier_company), tracking_number=coalesce($4,tracking_number), courier_handoff_at=coalesce($5,courier_handoff_at), estimated_delivery_at=coalesce($6,estimated_delivery_at), delivered_at=coalesce($7,delivered_at), courier_amount_received=coalesce($8,courier_amount_received), receipt_info=coalesce($9,receipt_info), receipt_image_url=coalesce($10,receipt_image_url), updated_at=now() where id=$1 returning *`,
+        [id, status, courierCompany, trackingNumber, courierHandoffAt || null, estimatedDeliveryAt || null, deliveredAt || null, courierAmountReceived === undefined ? null : Math.max(0, Number(courierAmountReceived || 0)), receiptInfo === undefined ? null : String(receiptInfo), receiptImageUrl === undefined ? null : String(receiptImageUrl)]
       );
       if (!updated) return response.status(404).json({ error: 'Pedido no encontrado.' });
       return response.status(200).json(await orderResponse(id));
