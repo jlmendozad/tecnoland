@@ -134,7 +134,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>PRODUCTO</th><th>CATEGORÍA</th><th>COLOR</th><th>COSTO</th><th>PRECIO</th><th>MARGEN</th><th>STOCK</th><th>VALOR (COSTO)</th><th></th></tr></thead>
+              <thead><tr><th data-sort="name">PRODUCTO</th><th data-sort="category">CATEGORÍA</th><th data-sort="productColor">COLOR</th><th data-sort="cost">COSTO</th><th data-sort="price">PRECIO</th><th data-sort="margin">MARGEN</th><th data-sort="stock">STOCK</th><th data-sort="inventoryValue">VALOR (COSTO)</th><th></th></tr></thead>
               <tbody id="productTable"></tbody>
             </table>
             <div class="empty-state" id="emptyState" hidden><span data-icon="search"></span><h3>No encontramos productos</h3><p>Prueba con otro término o ajusta los filtros.</p></div>
@@ -179,6 +179,12 @@
         <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
         <div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
       </form>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="orderEditModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="orderEditTitle">
+      <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderEditTitle">Detalle del pedido</h2></div><button class="icon-button" id="closeOrderEditModal" aria-label="Cerrar">×</button></div>
+      <div id="orderEditBody" style="padding:0 25px 25px"></div>
     </section>
   </div>
   <div class="modal-backdrop" id="importModal" hidden>

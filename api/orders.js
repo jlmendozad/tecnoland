@@ -101,6 +101,52 @@ module.exports = async function handler(request, response) {
       if (!updated) return response.status(404).json({ error: 'Pedido no encontrado.' });
       return response.status(200).json(await orderResponse(id));
     }
+    if (request.method === 'DELETE') {
+      const client = await pool.connect();
+      try {
+        await client.query('begin');
+        const { rows: [order] } = await client.query('select * from orders where id=$1 for update', [id]);
+        if (!order) { await client.query('rollback'); return response.status(404).json({ error: 'Pedido no encontrado.' }); }
+        const { rows: items } = await client.query('select * from order_items where order_id=$1 order by id asc', [id]);
+        for (const item of items) {
+          if (item.product_id) {
+            await client.query('update products set stock=stock+$2, updated_at=now() where id=$1', [item.product_id, item.quantity]);
+          }
+        }
+        await client.query(
+          `insert into inventory_history(product_id,sku,action,details)
+           select product_id, sku, 'order_deleted', jsonb_build_object(
+             'order', jsonb_build_object(
+               'id', $1::bigint,
+               'orderNumber', $2::text,
+               'customerName', $3::text,
+               'status', $4::text,
+               'total', $5::numeric,
+               'createdAt', $6::timestamptz,
+               'deletedAt', now(),
+               'deletedByUserId', $7::text,
+               'timezone', 'America/Guatemala'
+             ),
+             'items', $8::jsonb
+           )
+           from order_items where order_id=$1`,
+          [
+            order.id,
+            order.order_number,
+            order.customer_name,
+            order.status,
+            order.total,
+            order.created_at,
+            String(session.sub),
+            JSON.stringify(items.map(item => ({ sku: item.sku, productName: item.product_name, quantity: item.quantity, unitPrice: item.unit_price, unitCost: item.unit_cost, subtotal: item.subtotal })))
+          ]
+        );
+        await client.query('delete from order_items where order_id=$1', [id]);
+        await client.query('delete from orders where id=$1', [id]);
+        await client.query('commit');
+        return response.status(200).json({ deleted: true, id });
+      } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
+    }
     if (request.method === 'GET') return response.status(200).json(await orderResponse(id));
     return response.status(405).json({ error: 'Método no permitido.' });
   } catch (error) {
