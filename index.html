@@ -4,19 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Panel de administración de inventario de Tecnoland" />
-  <meta name="app-version" content="1.6" />
+  <meta name="app-version" content="1.7" />
   <title>Tecnoland — Inventario</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.6" />
+  <link rel="stylesheet" href="styles.css?v=1.7" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark">N</div>
-        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v1.6</small></div>
+        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v1.7</small></div>
       </div>
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
@@ -146,7 +146,7 @@
             </div>
             <div class="filters">
               <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option></select>
-              <select id="stockFilter" aria-label="Filtrar por stock"><option value="all">Todo el stock</option><option value="low">Bajo stock</option><option value="available">Disponible</option><option value="out">Agotado</option></select>
+              <select id="stockFilter" aria-label="Filtrar por stock"><option value="all">Todo el stock</option><option value="low">Bajo stock</option><option value="available">Disponible</option><option value="out">Agotado</option><option value="inactive">Inactivos</option></select>
             </div>
           </div>
           <div class="table-wrap">
@@ -220,7 +220,7 @@
           <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
         </div>
         <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
-        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
+        <div class="modal-actions product-modal-actions"><div class="product-state-actions"><button type="button" class="secondary-button" id="copyProductButton" hidden>Copiar producto</button><button type="button" class="secondary-button" id="toggleProductActiveButton" hidden>Desactivar</button></div><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
       </form>
     </section>
   </div>
@@ -305,6 +305,6 @@
   </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous" onerror="this.src='https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'"></script>
-  <script src="app.js?v=1.6"></script>
+  <script src="app.js?v=1.7"></script>
 </body>
 </html>

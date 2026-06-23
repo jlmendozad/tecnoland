@@ -119,7 +119,7 @@ module.exports = async function handler(request, response) {
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
 
-    const match = route.match(/^(\d+)(\/stock)?$/);
+    const match = route.match(/^(\d+)(\/(?:stock|active))?$/);
     if (!match) return response.status(404).json({ error: 'Ruta no encontrada.' });
     const id = Number(match[1]);
 
@@ -154,11 +154,18 @@ module.exports = async function handler(request, response) {
     }
 
     if (request.method === 'PATCH' && match[2]) {
-      const adjustment = Number(request.body.adjustment || 0); const client = await pool.connect();
+      const client = await pool.connect();
       try {
         await client.query('begin');
         const { rows: [previous] } = await client.query('select * from products where id=$1 for update', [id]);
         if (!previous) { await client.query('rollback'); return response.status(404).json({ error: 'Producto no encontrado.' }); }
+        if (match[2] === '/active') {
+          const active = typeof request.body.active === 'boolean' ? request.body.active : !previous.active;
+          const { rows: [product] } = await client.query('update products set active=$1,updated_at=now() where id=$2 returning *', [active, id]);
+          await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,$3,$4)", [id, product.sku, active ? 'product_activated' : 'product_deactivated', { active }]);
+          await client.query('commit'); return response.status(200).json(mapProduct(product));
+        }
+        const adjustment = Number(request.body.adjustment || 0);
         const stock = Math.max(0, previous.stock + adjustment);
         const { rows: [product] } = await client.query('update products set stock=$1,updated_at=now() where id=$2 returning *', [stock, id]);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'stock_adjusted',$3)", [id, product.sku, { previousStock: previous.stock, stock, adjustment: stock - previous.stock }]);

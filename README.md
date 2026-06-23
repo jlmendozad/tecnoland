@@ -10,6 +10,8 @@ Desde **Inventario → Importar** se aceptan archivos `.xlsx` y `.csv` de hasta 
 
 La combinación de SKU del proveedor y color determina si se crea una variante nueva o se actualiza una existente. Antes de importar se muestra una vista previa con errores por fila. Las altas, actualizaciones y eliminaciones se conservan en `inventory_history`.
 
+Los productos pueden copiarse para crear variantes editables con un SKU interno nuevo. Al desactivar un producto, permanece visible para gestión e historial, pero deja de participar en métricas y pedidos nuevos; los pedidos existentes conservan su SKU.
+
 ## Ejecutar
 
 ```bash

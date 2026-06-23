@@ -37,6 +37,7 @@ const normalizeProduct = (value, current = {}) => {
     themeColor: value.themeColor ?? value.color ?? current.themeColor ?? '#e8ecf5',
     cost: Number(value.cost ?? current.cost ?? 0), price: Number(value.price ?? current.price ?? 0),
     stock: Math.max(0, Number(value.stock ?? current.stock ?? 0)), threshold: Math.max(0, Number(value.threshold ?? current.threshold ?? 0)),
+    active: value.active ?? current.active ?? true,
     updatedAt: new Date().toISOString()
   };
 };
@@ -62,7 +63,7 @@ async function handleApi(request, response, pathname) {
     if (products.some(item => item.sku === product.sku)) return json(response, 409, { error: 'Ya existe un producto con ese SKU y color.' });
     products.unshift(product); writeProducts(products); recordHistory('product_created', product, { stock: product.stock }); return json(response, 201, product);
   }
-  const match = pathname.match(/^\/api\/products\/(\d+)(\/stock)?$/);
+  const match = pathname.match(/^\/api\/products\/(\d+)(\/(?:stock|active))?$/);
   if (!match) return json(response, 404, { error: 'Ruta no encontrada.' });
   const index = products.findIndex(product => product.id === Number(match[1]));
   if (index < 0) return json(response, 404, { error: 'Producto no encontrado.' });
@@ -75,6 +76,10 @@ async function handleApi(request, response, pathname) {
     products[index] = product; writeProducts(products); recordHistory('product_updated', product, { previousStock: previous.stock, stock: product.stock }); return json(response, 200, product);
   }
   if (request.method === 'PATCH' && match[2]) {
+    if (match[2] === '/active') {
+      const body = await readBody(request); const active = typeof body.active === 'boolean' ? body.active : products[index].active === false;
+      products[index] = normalizeProduct({ active }, products[index]); writeProducts(products); recordHistory(active ? 'product_activated' : 'product_deactivated', products[index], { active }); return json(response, 200, products[index]);
+    }
     const body = await readBody(request); const previousStock = products[index].stock; products[index] = normalizeProduct({ stock: previousStock + Number(body.adjustment || 0) }, products[index]);
     writeProducts(products); recordHistory('stock_adjusted', products[index], { previousStock, stock: products[index].stock, adjustment: products[index].stock - previousStock }); return json(response, 200, products[index]);
   }

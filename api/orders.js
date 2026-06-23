@@ -61,6 +61,7 @@ module.exports = async function handler(request, response) {
           const quantity = Math.max(1, Number(item.quantity || 0));
           const { rows: [product] } = await client.query('select * from products where id=$1 for update', [item.productId]);
           if (!product || product.stock < quantity) throw new Error(`Stock insuficiente para ${item.productName || item.sku || 'un producto'}.`);
+          if (product.active === false) throw new Error(`${product.name} está inactivo y no puede agregarse a pedidos nuevos.`);
           const lineSubtotal = Number(product.price) * quantity;
           subtotal += lineSubtotal;
           costTotal += Number(product.cost) * quantity;
