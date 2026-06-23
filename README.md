@@ -14,6 +14,8 @@ Los productos pueden copiarse para crear variantes editables con un SKU interno 
 
 La búsqueda superior muestra coincidencias instantáneas agrupadas por productos, categorías, pedidos y clientes. El buscador de la tabla de inventario filtra únicamente por nombre o SKU del producto.
 
+La sección Entregas resume pedidos en tránsito, cancelados y entregados; permite filtrar y buscar por información logística, y abre el detalle completo al seleccionar el número interno del pedido.
+
 ## Ejecutar
 
 ```bash
