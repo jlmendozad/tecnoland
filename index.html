@@ -198,18 +198,24 @@
           <label>SKU interno<input id="productInternalSku" readonly placeholder="Se generará automáticamente" /></label>
           <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
           <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
-          <div class="span-2 photo-gallery-panel">
-            <div class="photo-gallery-head">
-              <div>
-                <strong>Fotos del producto</strong>
-                <small>Miniaturas, vista ampliada y eliminación</small>
+          <div class="span-2 photo-row">
+            <section class="photo-gallery-panel">
+              <div class="photo-gallery-head">
+                <div>
+                  <strong>Fotos del producto</strong>
+                  <small>Miniaturas, vista ampliada y eliminación</small>
+                </div>
               </div>
+              <div class="photo-gallery-upload"><div class="photo-preview-grid" id="photoPreviewGrid"></div></div>
+            </section>
+            <section class="photo-upload-panel">
+              <label class="photo-upload-label">Cargar fotos</label>
               <label class="photo-upload-button">
                 Elegir archivos
                 <input id="productPhotos" type="file" accept="image/*" multiple />
               </label>
-            </div>
-            <div class="photo-gallery-upload"><div class="photo-preview-grid" id="photoPreviewGrid"></div></div>
+              <div class="photo-upload-hint">Sube una o varias imágenes para que socios y clientes puedan revisarlas.</div>
+            </section>
           </div>
           <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
           <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
