@@ -198,18 +198,22 @@
           <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
           <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
           <label class="span-2">Fotos del producto<input id="productPhotos" type="file" accept="image/*" multiple /></label>
+          <div class="span-2 photo-gallery-panel">
+            <div class="photo-gallery-head">
+              <div>
+                <strong>Fotos del producto</strong>
+                <small>Miniaturas, vista ampliada y eliminación</small>
+              </div>
+            </div>
+            <div class="photo-gallery-upload">
+              <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+            </div>
+          </div>
           <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
           <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
           <label>Stock actual<input id="productStock" required type="number" min="0" step="1" /></label>
           <label>Alerta de stock bajo<input id="productThreshold" required type="number" min="0" step="1" value="5" /></label>
           <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
-          <div class="span-2 photo-gallery-panel">
-            <div class="photo-gallery-head">
-              <strong>Fotos del producto</strong>
-              <small>Previsualización de las imágenes cargadas</small>
-            </div>
-            <div class="span-2 photo-preview-grid" id="photoPreviewGrid"></div>
-          </div>
         </div>
         <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
         <div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
@@ -220,6 +224,12 @@
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="orderEditTitle">
       <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderEditTitle">Detalle del pedido</h2></div><button class="icon-button" id="closeOrderEditModal" aria-label="Cerrar">×</button></div>
       <div id="orderEditBody" style="padding:0 25px 25px"></div>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="photoViewerModal" hidden>
+    <section class="modal photo-viewer-modal" role="dialog" aria-modal="true" aria-labelledby="photoViewerTitle">
+      <div class="modal-header"><div><p class="eyebrow">FOTOS</p><h2 id="photoViewerTitle">Vista ampliada</h2></div><button class="icon-button" id="closePhotoViewer" aria-label="Cerrar">×</button></div>
+      <div class="photo-viewer-body"><img id="photoViewerImage" alt="Vista ampliada del producto" /></div>
     </section>
   </div>
   <div class="modal-backdrop" id="importModal" hidden>
