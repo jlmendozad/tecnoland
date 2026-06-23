@@ -9,6 +9,8 @@ const databasePath = path.join(dataDirectory, 'inventory.json');
 const historyPath = path.join(dataDirectory, 'inventory-history.jsonl');
 const seedPath = path.join(__dirname, 'data', 'seed-products.json');
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json' };
+const slugify = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const buildInternalSku = (supplierSku, productColor) => `${String(supplierSku || '').trim().toUpperCase()}-${slugify(productColor || 'general')}`.replace(/-+/g, '-').toUpperCase();
 
 fs.mkdirSync(dataDirectory, { recursive: true });
 if (!fs.existsSync(databasePath)) fs.copyFileSync(seedPath, databasePath);
@@ -22,41 +24,42 @@ const writeProducts = products => {
 const recordHistory = (action, product, details = {}) => fs.appendFileSync(historyPath, `${JSON.stringify({ timestamp: new Date().toISOString(), action, productId: product.id, sku: product.sku, ...details })}\n`);
 const json = (response, status, body) => { response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); response.end(JSON.stringify(body)); };
 const readBody = request => new Promise((resolve, reject) => { let body = ''; request.on('data', chunk => { body += chunk; if (body.length > 1e6) request.destroy(); }); request.on('end', () => { try { resolve(body ? JSON.parse(body) : {}); } catch (error) { reject(error); } }); request.on('error', reject); });
-const normalizeProduct = (value, current = {}) => ({
-  ...current,
-  ...value,
-  id: current.id || Number(value.id) || Date.now(),
-  name: String(value.name ?? current.name ?? '').trim(),
-  sku: String(value.sku ?? current.sku ?? '').trim().toUpperCase(),
-  category: String(value.category ?? current.category ?? '').trim(),
-  productColor: String(value.productColor ?? value.variantColor ?? current.productColor ?? 'Sin especificar').trim(),
-  themeColor: value.themeColor ?? value.color ?? current.themeColor ?? '#e8ecf5',
-  cost: Number(value.cost ?? current.cost ?? 0),
-  price: Number(value.price ?? current.price ?? 0),
-  stock: Math.max(0, Number(value.stock ?? current.stock ?? 0)),
-  threshold: Math.max(0, Number(value.threshold ?? current.threshold ?? 0)),
-  updatedAt: new Date().toISOString()
-});
+const normalizeProduct = (value, current = {}) => {
+  const supplierSku = String(value.supplierSku ?? value.sku ?? current.supplierSku ?? current.sku ?? '').trim().toUpperCase();
+  const productColor = String(value.productColor ?? value.variantColor ?? current.productColor ?? 'Sin especificar').trim();
+  const internalSku = buildInternalSku(supplierSku, productColor);
+  return {
+    ...current, ...value,
+    id: current.id || Number(value.id) || Date.now(),
+    name: String(value.name ?? current.name ?? '').trim(),
+    sku: internalSku, supplierSku, internalSku,
+    category: String(value.category ?? current.category ?? '').trim(), productColor,
+    themeColor: value.themeColor ?? value.color ?? current.themeColor ?? '#e8ecf5',
+    cost: Number(value.cost ?? current.cost ?? 0), price: Number(value.price ?? current.price ?? 0),
+    stock: Math.max(0, Number(value.stock ?? current.stock ?? 0)), threshold: Math.max(0, Number(value.threshold ?? current.threshold ?? 0)),
+    updatedAt: new Date().toISOString()
+  };
+};
 
 async function handleApi(request, response, pathname) {
   const products = readProducts();
   if (request.method === 'GET' && pathname === '/api/products') return json(response, 200, products);
   if (request.method === 'POST' && pathname === '/api/products/import') {
     const body = await readBody(request); let imported = 0;
-    for (const raw of body.products || []) { const index = products.findIndex(product => product.sku === raw.sku); const product = normalizeProduct(raw, index >= 0 ? products[index] : {}); if (index >= 0) products[index] = product; else products.unshift(product); recordHistory('migration_import', product); imported += 1; }
+    for (const raw of body.products || []) { const normalized = normalizeProduct(raw), index = products.findIndex(product => product.sku === normalized.sku); const product = normalizeProduct(raw, index >= 0 ? products[index] : {}); if (index >= 0) products[index] = product; else products.unshift(product); recordHistory('migration_import', product); imported += 1; }
     writeProducts(products); return json(response, 200, { imported });
   }
   if (request.method === 'POST' && pathname === '/api/products/bulk') {
     const body = await readBody(request), incoming = Array.isArray(body.products) ? body.products : [], mergeStrategy = body.mergeStrategy === 'add' ? 'add' : 'replace';
     if (!incoming.length || incoming.length > 1000) return json(response, 400, { error: 'La importación debe contener entre 1 y 1,000 productos.' });
     let created = 0, updated = 0;
-    for (const raw of incoming) { const index = products.findIndex(product => product.sku === String(raw.sku).trim().toUpperCase()), product = normalizeProduct(raw, index >= 0 ? { ...products[index], stock: mergeStrategy === 'add' ? products[index].stock + Number(raw.stock || 0) : products[index].stock } : {}); if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' }); if (index >= 0) { products[index] = product; updated += 1; recordHistory('bulk_updated', product, { stock: product.stock, source: 'spreadsheet', strategy: mergeStrategy }); } else { products.unshift(product); created += 1; recordHistory('bulk_created', product, { stock: product.stock, source: 'spreadsheet' }); } }
+    for (const raw of incoming) { const normalized = normalizeProduct(raw), index = products.findIndex(product => product.sku === normalized.sku), product = normalizeProduct(raw, index >= 0 ? { ...products[index], stock: mergeStrategy === 'add' ? products[index].stock + Number(raw.stock || 0) : products[index].stock } : {}); if (!product.name || !product.supplierSku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' }); if (index >= 0) { products[index] = product; updated += 1; recordHistory('bulk_updated', product, { stock: product.stock, source: 'spreadsheet', strategy: mergeStrategy }); } else { products.unshift(product); created += 1; recordHistory('bulk_created', product, { stock: product.stock, source: 'spreadsheet' }); } }
     writeProducts(products); return json(response, 200, { created, updated });
   }
   if (request.method === 'POST' && pathname === '/api/products') {
     const product = normalizeProduct(await readBody(request));
-    if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' });
-    if (products.some(item => item.sku === product.sku)) return json(response, 409, { error: 'Ya existe un producto con ese SKU.' });
+    if (!product.name || !product.supplierSku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' });
+    if (products.some(item => item.sku === product.sku)) return json(response, 409, { error: 'Ya existe un producto con ese SKU y color.' });
     products.unshift(product); writeProducts(products); recordHistory('product_created', product, { stock: product.stock }); return json(response, 201, product);
   }
   const match = pathname.match(/^\/api\/products\/(\d+)(\/stock)?$/);
@@ -68,7 +71,7 @@ async function handleApi(request, response, pathname) {
   }
   if (request.method === 'PUT' && !match[2]) {
     const previous = products[index]; const product = normalizeProduct(await readBody(request), previous);
-    if (products.some((item, itemIndex) => item.sku === product.sku && itemIndex !== index)) return json(response, 409, { error: 'Ya existe un producto con ese SKU.' });
+    if (products.some((item, itemIndex) => item.sku === product.sku && itemIndex !== index)) return json(response, 409, { error: 'Ya existe un producto con ese SKU y color.' });
     products[index] = product; writeProducts(products); recordHistory('product_updated', product, { previousStock: previous.stock, stock: product.stock }); return json(response, 200, product);
   }
   if (request.method === 'PATCH' && match[2]) {

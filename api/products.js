@@ -2,7 +2,7 @@ const { pool, ensureDatabase, mapProduct, productValues, buildInternalSku } = re
 const { verifySession } = require('../lib/security');
 
 const sendError = (response, error) => {
-  if (error.code === '23505') return response.status(409).json({ error: 'Ya existe un producto con ese SKU.' });
+  if (error.code === '23505') return response.status(409).json({ error: 'Ya existe un producto con ese SKU y color.' });
   console.error(error);
   return response.status(500).json({ error: 'No fue posible procesar la solicitud.' });
 };
@@ -57,7 +57,8 @@ module.exports = async function handler(request, response) {
             `insert into products (name,sku,supplier_sku,internal_sku,category,product_color,cost,price,stock,threshold,description,emoji,theme_color)
              values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
              on conflict (sku) do update set name=excluded.name,supplier_sku=excluded.supplier_sku,internal_sku=excluded.internal_sku,category=excluded.category,product_color=excluded.product_color,cost=excluded.cost,price=excluded.price,stock=excluded.stock,threshold=excluded.threshold,description=excluded.description,emoji=excluded.emoji,theme_color=excluded.theme_color,updated_at=now()
-             returning *`, values
+             returning *`,
+            [values[0], internalSku, supplierSku, internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]]
           );
           await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'migration_import',$3)", [product.id, product.sku, { stock: product.stock }]);
           imported += 1;
@@ -72,10 +73,11 @@ module.exports = async function handler(request, response) {
       if (!incoming.length || incoming.length > 1000) return response.status(400).json({ error: 'La importación debe contener entre 1 y 1,000 productos.' });
       const rows = incoming.map(product => {
         const values = productValues(product);
-        return { name: values[0], sku: values[1], supplier_sku: values[1], internal_sku: buildInternalSku(values[1], values[3]), category: values[2], product_color: values[3], cost: values[4], price: values[5], stock: values[6], threshold: values[7], description: values[8], emoji: values[9], theme_color: values[10] };
+        const internalSku = buildInternalSku(values[1], values[3]);
+        return { name: values[0], sku: internalSku, supplier_sku: values[1], internal_sku: internalSku, category: values[2], product_color: values[3], cost: values[4], price: values[5], stock: values[6], threshold: values[7], description: values[8], emoji: values[9], theme_color: values[10] };
       });
       if (rows.some(product => !product.name || !product.sku || !Number.isFinite(product.cost) || !Number.isFinite(product.price))) return response.status(400).json({ error: 'Hay productos con campos obligatorios o importes inválidos.' });
-      if (new Set(rows.map(product => product.sku)).size !== rows.length) return response.status(400).json({ error: 'El archivo contiene SKU duplicados.' });
+      if (new Set(rows.map(product => product.sku)).size !== rows.length) return response.status(400).json({ error: 'El archivo contiene combinaciones de SKU y color duplicadas.' });
       const client = await pool.connect();
       try {
         await client.query('begin');
@@ -109,7 +111,7 @@ module.exports = async function handler(request, response) {
         const { rows: [product] } = await client.query(
           `insert into products (name,sku,supplier_sku,internal_sku,category,product_color,cost,price,stock,threshold,description,emoji,theme_color)
            values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) returning *`,
-          [values[0], values[1], values[1], internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]]
+          [values[0], internalSku, values[1], internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]]
         );
         await syncProductImages(client, product.id, Array.isArray(request.body.images) ? request.body.images : []);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'product_created',$3)", [product.id, product.sku, { stock: product.stock }]);
@@ -143,7 +145,7 @@ module.exports = async function handler(request, response) {
         const internalSku = buildInternalSku(values[1], values[3]);
         const { rows: [product] } = await client.query(
           `update products set name=$1,sku=$2,supplier_sku=$3,internal_sku=$4,category=$5,product_color=$6,cost=$7,price=$8,stock=$9,threshold=$10,description=$11,emoji=$12,theme_color=$13,updated_at=now() where id=$14 returning *`,
-          [values[0], values[1], values[1], internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], id]
+          [values[0], internalSku, values[1], internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], id]
         );
         await syncProductImages(client, product.id, Array.isArray(request.body.images) ? request.body.images : []);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'product_updated',$3)", [id, product.sku, { previousStock: previous.stock, stock: product.stock }]);
