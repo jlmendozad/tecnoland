@@ -12,6 +12,8 @@ La combinación de SKU del proveedor y color determina si se crea una variante n
 
 Los productos pueden copiarse para crear variantes editables con un SKU interno nuevo. Al desactivar un producto, permanece visible para gestión e historial, pero deja de participar en métricas y pedidos nuevos; los pedidos existentes conservan su SKU.
 
+La búsqueda superior muestra coincidencias instantáneas agrupadas por productos, categorías, pedidos y clientes. El buscador de la tabla de inventario filtra únicamente por nombre o SKU del producto.
+
 ## Ejecutar
 
 ```bash

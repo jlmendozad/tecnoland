@@ -45,8 +45,26 @@ module.exports = async function handler(request, response) {
     const route = String(request.query?.route || '').replace(/^\/+|\/+$/g, '');
 
     if (request.method === 'GET' && !route) {
-      const { rows } = await pool.query('select * from orders order by created_at desc, id desc limit 100');
-      return response.status(200).json(rows.map(row => ({ id: Number(row.id), orderNumber: row.order_number, customerName: row.customer_name, status: row.status, total: Number(row.total), marginTotal: Number(row.margin_total), paymentMethod: row.payment_method, deliveryMethod: row.delivery_method, createdAt: row.created_at })));
+      const { rows } = await pool.query('select * from orders order by created_at desc, id desc');
+      const ids = rows.map(row => row.id);
+      const { rows: itemRows } = ids.length ? await pool.query('select order_id,sku,product_name,product_color,quantity from order_items where order_id=any($1::bigint[]) order by id asc', [ids]) : { rows: [] };
+      const itemsByOrder = new Map();
+      for (const item of itemRows) {
+        const list = itemsByOrder.get(String(item.order_id)) || [];
+        list.push({ sku: item.sku, productName: item.product_name, productColor: item.product_color, quantity: item.quantity });
+        itemsByOrder.set(String(item.order_id), list);
+      }
+      return response.status(200).json(rows.map(row => ({
+        id: Number(row.id), orderNumber: row.order_number, customerName: row.customer_name,
+        customerPhone: row.customer_phone, customerAddress: row.customer_address,
+        customerNote: row.customer_note, internalNote: row.internal_note,
+        courierCompany: row.courier_company, trackingNumber: row.tracking_number,
+        status: row.status, total: Number(row.total), marginTotal: Number(row.margin_total),
+        paymentMethod: row.payment_method, deliveryMethod: row.delivery_method,
+        courierHandoffAt: row.courier_handoff_at, estimatedDeliveryAt: row.estimated_delivery_at,
+        deliveredAt: row.delivered_at, createdAt: row.created_at,
+        items: itemsByOrder.get(String(row.id)) || []
+      })));
     }
 
     if (request.method === 'POST') {
