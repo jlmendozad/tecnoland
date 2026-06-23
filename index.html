@@ -173,6 +173,14 @@
           <label class="span-2">Producto<select id="orderItemProduct"></select></label>
           <label>Cantidad<input id="orderItemQuantity" type="number" min="1" step="1" value="1" /></label>
         </div>
+        <div class="product-preview-box" id="orderProductPreview">
+          <div class="product-preview-image" id="orderProductPreviewImage">📦</div>
+          <div class="product-preview-copy">
+            <strong id="orderProductPreviewName">Selecciona un producto</strong>
+            <small id="orderProductPreviewMeta">Aquí verás SKU, categoría, color, precio y stock.</small>
+            <p id="orderProductPreviewDescription">Esto ayuda a responder dudas del cliente antes de agregar el artículo al pedido.</p>
+          </div>
+        </div>
         <div class="modal-actions"><button type="button" class="secondary-button" id="cancelOrderItemModal">Cancelar</button><button type="submit" class="primary-button">Agregar</button></div>
       </form>
     </section>
@@ -190,12 +198,18 @@
           <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
           <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
           <label class="span-2">Fotos del producto<input id="productPhotos" type="file" accept="image/*" multiple /></label>
-          <div class="span-2 photo-preview-grid" id="photoPreviewGrid"></div>
           <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
           <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
           <label>Stock actual<input id="productStock" required type="number" min="0" step="1" /></label>
           <label>Alerta de stock bajo<input id="productThreshold" required type="number" min="0" step="1" value="5" /></label>
           <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
+          <div class="span-2 photo-gallery-panel">
+            <div class="photo-gallery-head">
+              <strong>Fotos del producto</strong>
+              <small>Previsualización de las imágenes cargadas</small>
+            </div>
+            <div class="span-2 photo-preview-grid" id="photoPreviewGrid"></div>
+          </div>
         </div>
         <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
         <div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
