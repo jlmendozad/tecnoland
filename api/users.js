@@ -31,6 +31,18 @@ module.exports = async function handler(request, response) {
       return response.status(201).json({ id: Number(user.id), fullName: user.full_name, username: user.username, role: user.role, active: user.active, createdAt: user.created_at });
     }
 
+    if (request.method === 'PATCH' && request.query.route === 'me-password') {
+      const { id, currentPassword = '', newPassword = '' } = request.body || {};
+      if (!id || String(session.sub) !== String(id)) return response.status(403).json({ error: 'Solo puedes cambiar tu propia contraseña.' });
+      const { rows: [user] } = await pool.query('select * from users where id=$1 and active=true', [id]);
+      if (!user) return response.status(404).json({ error: 'Usuario no encontrado.' });
+      const valid = require('../lib/security').verifyPassword(String(currentPassword), user.password_salt, user.password_hash);
+      if (!valid) return response.status(400).json({ error: 'La contraseña actual no coincide.' });
+      const { salt, hash } = createPasswordHash(String(newPassword));
+      await pool.query('update users set password_salt=$2, password_hash=$3, updated_at=now() where id=$1', [id, salt, hash]);
+      return response.status(200).json({ ok: true });
+    }
+
     if (request.method === 'PATCH') {
       const { id, active } = request.body || {};
       const { rows: [user] } = await pool.query(

@@ -33,7 +33,7 @@
       <div class="user-card">
         <div class="avatar">JM</div>
         <div><strong>José Mendoza</strong><small>Administrador</small></div>
-        <button aria-label="Más opciones">•••</button>
+        <button id="userCardButton" aria-label="Cambiar mi contraseña">•••</button>
       </div>
     </aside>
 
@@ -98,9 +98,11 @@
         <input type="hidden" id="productId" />
         <div class="form-grid">
           <label class="span-2">Nombre del producto<input id="productName" required placeholder="Ej. Audífonos inalámbricos" /></label>
-          <label>SKU<input id="productSku" required placeholder="TEC-AUD-001" /></label>
+          <label>SKU proveedor<input id="productSku" required placeholder="TEC-AUD-001" /></label>
           <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
           <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
+          <label class="span-2">Fotos del producto<input id="productPhotos" type="file" accept="image/*" multiple /></label>
+          <div class="span-2 photo-preview-grid" id="photoPreviewGrid"></div>
           <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
           <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
           <label>Stock actual<input id="productStock" required type="number" min="0" step="1" /></label>
@@ -162,6 +164,16 @@
         <label>Usuario<input id="loginUsername" required autocomplete="username" /></label>
         <label>Contraseña<input id="loginPassword" required type="password" autocomplete="current-password" /></label>
         <div class="modal-actions"><button type="submit" class="primary-button">Ingresar</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="passwordModal" hidden>
+    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+      <div class="modal-header"><div><p class="eyebrow">SEGURIDAD</p><h2 id="passwordTitle">Cambiar mi contraseña</h2></div><button class="icon-button" id="closePasswordModal" aria-label="Cerrar">×</button></div>
+      <form id="passwordForm" class="login-form">
+        <label>Contraseña actual<input id="currentPassword" required type="password" autocomplete="current-password" /></label>
+        <label>Nueva contraseña<input id="newPassword" required type="password" autocomplete="new-password" /></label>
+        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelPasswordModal">Cancelar</button><button type="submit" class="primary-button">Actualizar</button></div>
       </form>
     </section>
   </div>
