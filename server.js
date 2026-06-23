@@ -47,10 +47,10 @@ async function handleApi(request, response, pathname) {
     writeProducts(products); return json(response, 200, { imported });
   }
   if (request.method === 'POST' && pathname === '/api/products/bulk') {
-    const body = await readBody(request), incoming = Array.isArray(body.products) ? body.products : [];
+    const body = await readBody(request), incoming = Array.isArray(body.products) ? body.products : [], mergeStrategy = body.mergeStrategy === 'add' ? 'add' : 'replace';
     if (!incoming.length || incoming.length > 1000) return json(response, 400, { error: 'La importación debe contener entre 1 y 1,000 productos.' });
     let created = 0, updated = 0;
-    for (const raw of incoming) { const index = products.findIndex(product => product.sku === String(raw.sku).trim().toUpperCase()), product = normalizeProduct(raw, index >= 0 ? products[index] : {}); if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' }); if (index >= 0) { products[index] = product; updated += 1; recordHistory('bulk_updated', product, { stock: product.stock, source: 'spreadsheet' }); } else { products.unshift(product); created += 1; recordHistory('bulk_created', product, { stock: product.stock, source: 'spreadsheet' }); } }
+    for (const raw of incoming) { const index = products.findIndex(product => product.sku === String(raw.sku).trim().toUpperCase()), product = normalizeProduct(raw, index >= 0 ? { ...products[index], stock: mergeStrategy === 'add' ? products[index].stock + Number(raw.stock || 0) : products[index].stock } : {}); if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' }); if (index >= 0) { products[index] = product; updated += 1; recordHistory('bulk_updated', product, { stock: product.stock, source: 'spreadsheet', strategy: mergeStrategy }); } else { products.unshift(product); created += 1; recordHistory('bulk_created', product, { stock: product.stock, source: 'spreadsheet' }); } }
     writeProducts(products); return json(response, 200, { created, updated });
   }
   if (request.method === 'POST' && pathname === '/api/products') {

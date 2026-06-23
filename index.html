@@ -23,7 +23,7 @@
         <a href="#" class="nav-item"><span data-icon="bag"></span>Pedidos</a>
         <a href="#" class="nav-item"><span data-icon="truck"></span>Entregas</a>
         <div class="nav-label">Administración</div>
-        <a href="#" class="nav-item"><span data-icon="users"></span>Socios</a>
+        <a href="#" class="nav-item" id="partnersNav"><span data-icon="users"></span>Socios</a>
         <a href="#" class="nav-item"><span data-icon="settings"></span>Configuración</a>
       </nav>
       <div class="sidebar-card">
@@ -123,12 +123,46 @@
           <small>Formatos .xlsx o .csv · máximo 1,000 productos</small>
         </button>
         <div class="import-help"><strong>Columnas esperadas</strong><p>SKU, Producto, Categoría, Color, Costo, Precio, Stock, Alerta y Descripción. SKU y Producto son obligatorios.</p><button type="button" class="text-button" id="downloadTemplate">Descargar plantilla CSV</button></div>
+        <label class="import-strategy">Si el SKU ya existe
+          <select id="importStrategy">
+            <option value="replace">Reemplazar el producto</option>
+            <option value="add">Agregar cantidades al stock</option>
+          </select>
+        </label>
         <div class="import-preview" id="importPreview" hidden>
           <div class="preview-summary" id="previewSummary"></div>
           <div class="preview-table-wrap"><table><thead><tr><th>FILA</th><th>SKU</th><th>PRODUCTO</th><th>ACCIÓN</th><th>ESTADO</th></tr></thead><tbody id="previewTable"></tbody></table></div>
         </div>
         <div class="modal-actions"><button type="button" class="secondary-button" id="cancelImport">Cancelar</button><button type="button" class="primary-button" id="confirmImport" disabled>Importar productos</button></div>
       </div>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="usersModal" hidden>
+    <section class="modal users-modal" role="dialog" aria-modal="true" aria-labelledby="usersTitle">
+      <div class="modal-header"><div><p class="eyebrow">ADMINISTRACIÓN</p><h2 id="usersTitle">Socios y accesos</h2></div><button class="icon-button" id="closeUsersModal" aria-label="Cerrar">×</button></div>
+      <div class="users-body">
+        <form id="userForm" class="user-form">
+          <label>Nombre completo<input id="userFullName" required placeholder="Nombre del socio" /></label>
+          <label>Usuario<input id="userUsername" required placeholder="jlmendoza" /></label>
+          <label>Contraseña<input id="userPassword" required type="password" placeholder="Crear contraseña" /></label>
+          <label>Rol<select id="userRole"><option value="socio">Socio</option><option value="admin">Administrador</option></select></label>
+          <div class="modal-actions"><button type="button" class="secondary-button" id="cancelUserModal">Cancelar</button><button type="submit" class="primary-button">Crear usuario</button></div>
+        </form>
+        <div class="users-list-wrap">
+          <h3>Usuarios activos</h3>
+          <div id="usersList"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="loginModal" hidden>
+    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <div class="modal-header"><div><p class="eyebrow">ACCESO</p><h2 id="loginTitle">Entrar a Tecnoland</h2></div></div>
+      <form id="loginForm" class="login-form">
+        <label>Usuario<input id="loginUsername" required autocomplete="username" /></label>
+        <label>Contraseña<input id="loginPassword" required type="password" autocomplete="current-password" /></label>
+        <div class="modal-actions"><button type="submit" class="primary-button">Ingresar</button></div>
+      </form>
     </section>
   </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>

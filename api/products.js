@@ -1,4 +1,5 @@
 const { pool, ensureDatabase, mapProduct, productValues } = require('../lib/database');
+const { verifySession } = require('../lib/security');
 
 const sendError = (response, error) => {
   if (error.code === '23505') return response.status(409).json({ error: 'Ya existe un producto con ese SKU.' });
@@ -6,9 +7,22 @@ const sendError = (response, error) => {
   return response.status(500).json({ error: 'No fue posible procesar la solicitud.' });
 };
 
+function requireAdmin(request, response) {
+  const header = request.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  const session = verifySession(token);
+  if (!session) {
+    response.status(401).json({ error: 'Acceso no autorizado.' });
+    return null;
+  }
+  return session;
+}
+
 module.exports = async function handler(request, response) {
   try {
     await ensureDatabase();
+    const session = requireAdmin(request, response);
+    if (!session) return;
     const route = String(request.query.route || '').replace(/^\/+|\/+$/g, '');
 
     if (request.method === 'GET' && !route) {
@@ -37,6 +51,7 @@ module.exports = async function handler(request, response) {
 
     if (request.method === 'POST' && route === 'bulk') {
       const incoming = Array.isArray(request.body.products) ? request.body.products : [];
+      const mergeStrategy = request.body.mergeStrategy === 'add' ? 'add' : 'replace';
       if (!incoming.length || incoming.length > 1000) return response.status(400).json({ error: 'La importación debe contener entre 1 y 1,000 productos.' });
       const rows = incoming.map(product => { const values = productValues(product); return { name: values[0], sku: values[1], category: values[2], product_color: values[3], cost: values[4], price: values[5], stock: values[6], threshold: values[7], description: values[8], emoji: values[9], theme_color: values[10] }; });
       if (rows.some(product => !product.name || !product.sku || !Number.isFinite(product.cost) || !Number.isFinite(product.price))) return response.status(400).json({ error: 'Hay productos con campos obligatorios o importes inválidos.' });
@@ -51,8 +66,8 @@ module.exports = async function handler(request, response) {
           `insert into products (name,sku,category,product_color,cost,price,stock,threshold,description,emoji,theme_color)
            select name,sku,category,product_color,cost,price,stock,threshold,description,emoji,theme_color
            from jsonb_to_recordset($1::jsonb) as x(name text,sku text,category text,product_color text,cost numeric,price numeric,stock integer,threshold integer,description text,emoji text,theme_color text)
-           on conflict (sku) do update set name=excluded.name,category=excluded.category,product_color=excluded.product_color,cost=excluded.cost,price=excluded.price,stock=excluded.stock,threshold=excluded.threshold,description=excluded.description,emoji=excluded.emoji,theme_color=excluded.theme_color,updated_at=now()`,
-          [JSON.stringify(rows)]
+           on conflict (sku) do update set name=excluded.name,category=excluded.category,product_color=excluded.product_color,cost=excluded.cost,price=excluded.price,stock=case when $2 = 'add' then products.stock + excluded.stock else excluded.stock end,threshold=excluded.threshold,description=excluded.description,emoji=excluded.emoji,theme_color=excluded.theme_color,updated_at=now()`,
+          [JSON.stringify(rows), mergeStrategy]
         );
         await client.query(
           `insert into inventory_history(product_id,sku,action,details)
