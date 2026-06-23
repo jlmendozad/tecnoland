@@ -16,6 +16,8 @@ La búsqueda superior muestra coincidencias instantáneas agrupadas por producto
 
 La sección Entregas resume pedidos en tránsito, cancelados y entregados; permite filtrar y buscar por información logística, y abre el detalle completo al seleccionar el número interno del pedido.
 
+Los modales distinguen un clic real en el fondo de una selección arrastrada desde un campo. El selector de productos de pedidos incluye búsqueda por nombre o SKU y actualiza la vista previa e imagen al cambiar la selección.
+
 ## Ejecutar
 
 ```bash
