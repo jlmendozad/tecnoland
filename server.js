@@ -46,6 +46,13 @@ async function handleApi(request, response, pathname) {
     for (const raw of body.products || []) { const index = products.findIndex(product => product.sku === raw.sku); const product = normalizeProduct(raw, index >= 0 ? products[index] : {}); if (index >= 0) products[index] = product; else products.unshift(product); recordHistory('migration_import', product); imported += 1; }
     writeProducts(products); return json(response, 200, { imported });
   }
+  if (request.method === 'POST' && pathname === '/api/products/bulk') {
+    const body = await readBody(request), incoming = Array.isArray(body.products) ? body.products : [];
+    if (!incoming.length || incoming.length > 1000) return json(response, 400, { error: 'La importación debe contener entre 1 y 1,000 productos.' });
+    let created = 0, updated = 0;
+    for (const raw of incoming) { const index = products.findIndex(product => product.sku === String(raw.sku).trim().toUpperCase()), product = normalizeProduct(raw, index >= 0 ? products[index] : {}); if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' }); if (index >= 0) { products[index] = product; updated += 1; recordHistory('bulk_updated', product, { stock: product.stock, source: 'spreadsheet' }); } else { products.unshift(product); created += 1; recordHistory('bulk_created', product, { stock: product.stock, source: 'spreadsheet' }); } }
+    writeProducts(products); return json(response, 200, { created, updated });
+  }
   if (request.method === 'POST' && pathname === '/api/products') {
     const product = normalizeProduct(await readBody(request));
     if (!product.name || !product.sku) return json(response, 400, { error: 'Nombre y SKU son obligatorios.' });
@@ -56,6 +63,9 @@ async function handleApi(request, response, pathname) {
   if (!match) return json(response, 404, { error: 'Ruta no encontrada.' });
   const index = products.findIndex(product => product.id === Number(match[1]));
   if (index < 0) return json(response, 404, { error: 'Producto no encontrado.' });
+  if (request.method === 'DELETE' && !match[2]) {
+    const [product] = products.splice(index, 1); recordHistory('product_deleted', product, { product }); writeProducts(products); return json(response, 200, { deleted: true, id: product.id });
+  }
   if (request.method === 'PUT' && !match[2]) {
     const previous = products[index]; const product = normalizeProduct(await readBody(request), previous);
     if (products.some((item, itemIndex) => item.sku === product.sku && itemIndex !== index)) return json(response, 409, { error: 'Ya existe un producto con ese SKU.' });

@@ -43,6 +43,7 @@
         <div class="global-search"><span data-icon="search"></span><input id="searchInput" type="search" placeholder="Buscar por nombre, SKU o categoría..." /></div>
         <div class="top-actions">
           <button class="icon-button notification" aria-label="Notificaciones"><span data-icon="bell"></span><i></i></button>
+          <button class="secondary-button import-trigger" id="importButton"><span data-icon="upload"></span> Importar</button>
           <button class="primary-button" id="addProductButton"><span>＋</span> Nuevo producto</button>
         </div>
       </header>
@@ -111,7 +112,27 @@
       </form>
     </section>
   </div>
+  <div class="modal-backdrop" id="importModal" hidden>
+    <section class="modal import-modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+      <div class="modal-header"><div><p class="eyebrow">CARGA MASIVA</p><h2 id="importTitle">Importar inventario</h2></div><button class="icon-button" id="closeImportModal" aria-label="Cerrar">×</button></div>
+      <div class="import-body">
+        <input id="inventoryFile" type="file" accept=".xlsx,.csv" hidden />
+        <button class="upload-zone" id="chooseFileButton" type="button">
+          <span class="upload-icon" data-icon="upload"></span>
+          <strong>Selecciona un Excel o CSV</strong>
+          <small>Formatos .xlsx o .csv · máximo 1,000 productos</small>
+        </button>
+        <div class="import-help"><strong>Columnas esperadas</strong><p>SKU, Producto, Categoría, Color, Costo, Precio, Stock, Alerta y Descripción. SKU y Producto son obligatorios.</p><button type="button" class="text-button" id="downloadTemplate">Descargar plantilla CSV</button></div>
+        <div class="import-preview" id="importPreview" hidden>
+          <div class="preview-summary" id="previewSummary"></div>
+          <div class="preview-table-wrap"><table><thead><tr><th>FILA</th><th>SKU</th><th>PRODUCTO</th><th>ACCIÓN</th><th>ESTADO</th></tr></thead><tbody id="previewTable"></tbody></table></div>
+        </div>
+        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelImport">Cancelar</button><button type="button" class="primary-button" id="confirmImport" disabled>Importar productos</button></div>
+      </div>
+    </section>
+  </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous" onerror="this.src='https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'"></script>
   <script src="app.js"></script>
 </body>
 </html>
