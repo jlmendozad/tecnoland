@@ -81,7 +81,10 @@ module.exports = async function handler(request, response) {
             [order.id, entry.product.id, entry.product.sku, entry.product.name, entry.product.product_color, entry.quantity, entry.product.cost, entry.product.price, entry.subtotal]
           );
         }
-        await client.query("insert into inventory_history(product_id,sku,action,details) select id,sku,'order_created',jsonb_build_object('orderNumber',$1,'items',$2) from products where id = any($3::bigint[])", [orderNumber, JSON.stringify(orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity }))), orderItems.map(item => item.product.id)]);
+        await client.query(
+          "insert into inventory_history(product_id,sku,action,details) select id,sku,'order_created',jsonb_build_object('orderNumber',$1::text,'items',$2::jsonb) from products where id = any($3::bigint[])",
+          [orderNumber, JSON.stringify(orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity }))), orderItems.map(item => Number(item.product.id))]
+        );
         await client.query('commit');
         return response.status(201).json(await orderResponse(order.id));
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
