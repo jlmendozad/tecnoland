@@ -109,7 +109,7 @@ module.exports = async function handler(request, response) {
         const { rows: [product] } = await client.query(
           `insert into products (name,sku,supplier_sku,internal_sku,category,product_color,cost,price,stock,threshold,description,emoji,theme_color)
            values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) returning *`,
-          [...values, values[1], internalSku]
+          [values[0], values[1], values[1], internalSku, values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]]
         );
         await syncProductImages(client, product.id, Array.isArray(request.body.images) ? request.body.images : []);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'product_created',$3)", [product.id, product.sku, { stock: product.stock }]);

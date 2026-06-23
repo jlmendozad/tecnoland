@@ -97,9 +97,23 @@
             <div><small>Total</small><strong id="orderTotal">Q0.00</strong></div>
             <div class="modal-actions"><button class="secondary-button" id="cancelOrder">Cancelar</button><button class="primary-button" id="confirmOrder">Confirmar pedido</button></div>
           </section>
+          <section class="inventory-panel" style="margin-top:18px" id="allOrdersPanel">
+            <div class="panel-header">
+              <div><h2>Todos los pedidos</h2><p>Busca, filtra por fecha y elimina pruebas</p></div>
+              <div class="filters">
+                <input id="ordersSearch" type="search" placeholder="Buscar pedido, cliente o número" />
+                <input id="ordersDateFrom" type="date" />
+                <input id="ordersDateTo" type="date" />
+              </div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th><th></th></tr></thead><tbody id="allOrdersTable"></tbody></table></div>
+          </section>
           <section class="inventory-panel" style="margin-top:18px">
-            <div class="panel-header"><div><h2>Pedidos recientes</h2><p>Últimos 20 movimientos</p></div></div>
-            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+            <div class="panel-header">
+              <div><h2>Pedidos recientes</h2><p>Últimos 20 movimientos</p></div>
+              <button class="secondary-button" id="openAllOrders">Ver todos los pedidos</button>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th><th></th></tr></thead><tbody id="ordersTable"></tbody></table></div>
           </section>
         </section>
         <section id="inventorySection">
@@ -166,6 +180,7 @@
         <div class="form-grid">
           <label class="span-2">Nombre del producto<input id="productName" required placeholder="Ej. Audífonos inalámbricos" /></label>
           <label>SKU proveedor<input id="productSku" required placeholder="TEC-AUD-001" /></label>
+          <label>SKU interno<input id="productInternalSku" readonly placeholder="Se generará automáticamente" /></label>
           <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
           <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
           <label class="span-2">Fotos del producto<input id="productPhotos" type="file" accept="image/*" multiple /></label>
