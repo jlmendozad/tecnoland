@@ -27,8 +27,8 @@ async function readApiWithRetry(path,attempts=3){let lastError;for(let attempt=1
 function applySessionUi(){const user=session?.user;$('#sessionName').textContent=user?.fullName||user?.username||'Tecnoland';$('#sessionRole').textContent=user?roleLabel(user.role):'Sin sesión';$('#sessionAvatar').textContent=userInitials(user?.fullName,user?.username);const isAdmin=user?.role==='admin';$('#partnersNav').hidden=!isAdmin;if(!isAdmin)closeUsersModal()}
 function setSession(next){session=next; if(next)writeJsonStorage(sessionStorage,SESSION_KEY,next); else removeStorageKey(SESSION_KEY);applySessionUi()}
 async function restoreSession(){try{const restored=await api('/auth/session');setSession(restored);hideLogin();return restored}catch{return null}}
-function showLogin(){ $('#loginModal').hidden=false }
-function hideLogin(){ $('#loginModal').hidden=true }
+function showLogin(){ document.body.classList.add('login-only');$('#loginModal').hidden=false }
+function hideLogin(){ document.body.classList.remove('login-only');$('#loginModal').hidden=true }
 async function logout(){try{await api('/auth/logout',{method:'POST'})}catch{}setSession(null);products=[];orders=[];users=[];orderItems=[];setStockBadge();closeSidebar();closeModal();closeImportModal();closeUsersModal();closePasswordModal();closeOrderItemModal();closeOrderDetail();$('#loginForm').reset();showLogin();toast('Sesión cerrada','Vuelve a ingresar para continuar.')}
 function setStockBadge(value=null){const badge=$('#navStockBadge');if(!badge)return;const count=Number(value);badge.hidden=!Number.isFinite(count)||count<=0;badge.textContent=badge.hidden?'':String(count)}
 function setInventoryLoading(message='Cargando productos…'){setStockBadge();$('#emptyState').hidden=true;$('#resultCount').textContent=message;$('#footerCount').textContent='Conectando con la base de datos';$('#productTable').innerHTML=`<tr><td colspan="11"><div class="inventory-load-state"><span class="loading-spinner" aria-hidden="true"></span><div><strong>${escapeHtml(message)}</strong><small>Tu inventario permanece seguro mientras establecemos conexión.</small></div></div></td></tr>`}
