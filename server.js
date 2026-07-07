@@ -7,6 +7,7 @@ const host = process.env.HOST || '127.0.0.1';
 const dataDirectory = process.env.DATA_DIR || path.join(__dirname, 'data');
 const databasePath = path.join(dataDirectory, 'inventory.json');
 const historyPath = path.join(dataDirectory, 'inventory-history.jsonl');
+const settingsPath = path.join(dataDirectory, 'site-settings.json');
 const seedPath = path.join(__dirname, 'data', 'seed-products.json');
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json' };
 const slugify = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -14,12 +15,19 @@ const buildInternalSku = (supplierSku, productColor) => `${String(supplierSku ||
 
 fs.mkdirSync(dataDirectory, { recursive: true });
 if (!fs.existsSync(databasePath)) fs.copyFileSync(seedPath, databasePath);
+if (!fs.existsSync(settingsPath)) fs.writeFileSync(settingsPath, JSON.stringify({ eyebrow:'TECNOLOGIA CURADA', title:'El catalogo de Tecnoland ahora vive al frente.', description:'Descubre productos activos, revisa colores, consulta disponibilidad y encuentra rapido lo que necesitas sin entrar al panel de administracion.', primaryCtaLabel:'Ver catalogo' }, null, 2));
 
 const readProducts = () => JSON.parse(fs.readFileSync(databasePath, 'utf8'));
+const readSettings = () => JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
 const writeProducts = products => {
   const temporaryPath = `${databasePath}.tmp`;
   fs.writeFileSync(temporaryPath, JSON.stringify(products, null, 2));
   fs.renameSync(temporaryPath, databasePath);
+};
+const writeSettings = settings => {
+  const temporaryPath = `${settingsPath}.tmp`;
+  fs.writeFileSync(temporaryPath, JSON.stringify(settings, null, 2));
+  fs.renameSync(temporaryPath, settingsPath);
 };
 const recordHistory = (action, product, details = {}) => fs.appendFileSync(historyPath, `${JSON.stringify({ timestamp: new Date().toISOString(), action, productId: product.id, sku: product.sku, ...details })}\n`);
 const json = (response, status, body) => { response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); response.end(JSON.stringify(body)); };
@@ -44,6 +52,18 @@ const normalizeProduct = (value, current = {}) => {
 
 async function handleApi(request, response, pathname) {
   const products = readProducts();
+  if (request.method === 'GET' && pathname === '/api/settings') return json(response, 200, readSettings());
+  if (request.method === 'PATCH' && pathname === '/api/settings') {
+    const body = await readBody(request);
+    const next = {
+      eyebrow: String(body.eyebrow || 'TECNOLOGIA CURADA').trim().slice(0, 60) || 'TECNOLOGIA CURADA',
+      title: String(body.title || 'El catalogo de Tecnoland ahora vive al frente.').trim().slice(0, 140) || 'El catalogo de Tecnoland ahora vive al frente.',
+      description: String(body.description || 'Descubre productos activos, revisa colores, consulta disponibilidad y encuentra rapido lo que necesitas sin entrar al panel de administracion.').trim().slice(0, 320) || 'Descubre productos activos, revisa colores, consulta disponibilidad y encuentra rapido lo que necesitas sin entrar al panel de administracion.',
+      primaryCtaLabel: String(body.primaryCtaLabel || 'Ver catalogo').trim().slice(0, 40) || 'Ver catalogo'
+    };
+    writeSettings(next);
+    return json(response, 200, next);
+  }
   if (request.method === 'GET' && pathname === '/api/products') return json(response, 200, products);
   if (request.method === 'POST' && pathname === '/api/products/import') {
     const body = await readBody(request); let imported = 0;

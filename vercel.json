@@ -32,6 +32,7 @@
   ],
   "rewrites": [
     { "source": "/erptienda", "destination": "/admin.html" },
+    { "source": "/api/settings", "destination": "/api/settings" },
     { "source": "/api/products/:route*", "destination": "/api/products?route=:route*" },
     { "source": "/api/users/:route*", "destination": "/api/users?route=:route*" },
     { "source": "/api/auth/:route*", "destination": "/api/auth?route=:route*" },

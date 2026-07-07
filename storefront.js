@@ -1,5 +1,11 @@
 const state = {
   products: [],
+  settings: {
+    eyebrow: 'TECNOLOGIA CURADA',
+    title: 'El catalogo de Tecnoland ahora vive al frente.',
+    description: 'Descubre productos activos, revisa colores, consulta disponibilidad y encuentra rapido lo que necesitas sin entrar al panel de administracion.',
+    primaryCtaLabel: 'Ver catalogo'
+  },
   filters: {
     query: '',
     category: 'all',
@@ -12,11 +18,6 @@ const state = {
 const $ = selector => document.querySelector(selector);
 const money = value => new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ', currencyDisplay: 'narrowSymbol' }).format(Number(value || 0));
 const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-const formatDate = value => {
-  if (!value) return 'En línea';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'En línea' : `Actualizado ${new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium', timeStyle: 'short' }).format(date)}`;
-};
 
 function productImage(product) {
   return product.images?.[0]?.url || 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
@@ -63,24 +64,11 @@ function renderCategories() {
   ].join('');
 }
 
-function renderStats() {
-  const categories = new Set(state.products.map(product => product.category).filter(Boolean));
-  const totalStock = state.products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
-  const latestUpdate = state.products.reduce((latest, product) => {
-    const time = new Date(product.updatedAt || 0).getTime();
-    return time > latest ? time : latest;
-  }, 0);
-  const highlight = state.products.find(product => product.stock > 0) || state.products[0];
-
-  $('#statProducts').textContent = String(state.products.length);
-  $('#statCategories').textContent = String(categories.size);
-  $('#statStock').textContent = String(totalStock);
-  $('#heroUpdatedAt').textContent = latestUpdate ? formatDate(latestUpdate) : 'En línea';
-
-  if (highlight) {
-    $('#heroHighlightTitle').textContent = highlight.name;
-    $('#heroHighlightText').textContent = `${highlight.category} · ${highlight.productColor} · ${money(highlight.price)}${highlight.stock > 0 ? ` · ${highlight.stock} disponibles` : ' · agotado por ahora'}`;
-  }
+function renderHero() {
+  $('#storefrontEyebrow').textContent = state.settings.eyebrow;
+  $('#storefrontTitle').textContent = state.settings.title;
+  $('#storefrontDescription').textContent = state.settings.description;
+  $('#storefrontPrimaryCta').textContent = state.settings.primaryCtaLabel;
 }
 
 function renderProducts() {
@@ -118,7 +106,7 @@ function renderProducts() {
 
 function render() {
   renderCategories();
-  renderStats();
+  renderHero();
   renderProducts();
 }
 
@@ -169,6 +157,16 @@ async function loadProducts() {
   } catch (error) {
     $('#productsGrid').innerHTML = `<div class="error-state"><strong>No pudimos cargar el catálogo.</strong><p>${error.message}</p></div>`;
   }
+}
+
+async function loadSettings() {
+  try {
+    const response = await fetch('/api/settings', { credentials: 'same-origin' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'No fue posible cargar la configuracion.');
+    state.settings = { ...state.settings, ...data };
+    renderHero();
+  } catch {}
 }
 
 $('#searchInput').addEventListener('input', event => updateFilter('query', event.target.value.trim()));
@@ -223,4 +221,5 @@ $('#shareCatalogButton').addEventListener('click', async () => {
   copyText(url, 'Enlace del catálogo copiado.');
 });
 
+loadSettings();
 loadProducts();
