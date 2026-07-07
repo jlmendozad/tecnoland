@@ -1,11 +1,12 @@
 {
   "name": "tecnoland-admin",
-  "version": "1.0.0",
+  "version": "2.12.0",
   "private": true,
   "description": "Módulo de gestión de inventario para Tecnoland",
   "scripts": {
     "start": "node server.js",
     "db:init": "node --env-file=.env.local scripts/init-db.js",
+    "db:init:deploy": "node scripts/init-db.js",
     "test:integration": "node --env-file=.env.local scripts/test-inventory-api.js"
   },
   "dependencies": {

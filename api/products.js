@@ -1,5 +1,5 @@
 const { pool, ensureDatabase, mapProduct, productValues, buildInternalSku } = require('../lib/database');
-const { verifySession } = require('../lib/security');
+const { sessionFromRequest } = require('../lib/security');
 
 const sendError = (response, error) => {
   if (error.code === '23505') return response.status(409).json({ error: 'Ya existe un producto con ese SKU y color.' });
@@ -14,10 +14,37 @@ async function syncProductImages(client, productId, images = []) {
   }
 }
 
+async function productResponse(client, product) {
+  const source = client || pool;
+  const { rows } = await source.query(
+    'select image_url, sort_order from product_images where product_id=$1 order by sort_order asc, id asc',
+    [product.id]
+  );
+  return {
+    ...mapProduct(product),
+    images: rows.map(image => ({ url: image.image_url, sortOrder: image.sort_order }))
+  };
+}
+
+function publicProductResponse(product, images = []) {
+  const mapped = mapProduct(product);
+  return {
+    id: mapped.id,
+    name: mapped.name,
+    category: mapped.category,
+    productColor: mapped.productColor,
+    price: mapped.price,
+    stock: mapped.stock,
+    description: mapped.description,
+    emoji: mapped.emoji,
+    themeColor: mapped.themeColor,
+    images,
+    updatedAt: mapped.updatedAt
+  };
+}
+
 function requireAdmin(request, response) {
-  const header = request.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-  const session = verifySession(token);
+  const session = sessionFromRequest(request);
   if (!session) {
     response.status(401).json({ error: 'Acceso no autorizado.' });
     return null;
@@ -28,12 +55,15 @@ function requireAdmin(request, response) {
 module.exports = async function handler(request, response) {
   try {
     await ensureDatabase();
-    const session = requireAdmin(request, response);
-    if (!session) return;
     const route = String(request.query.route || '').replace(/^\/+|\/+$/g, '');
 
     if (request.method === 'GET' && !route) {
-      const { rows } = await pool.query('select * from products order by created_at desc, id desc');
+      const session = sessionFromRequest(request);
+      const { rows } = await pool.query(
+        session
+          ? 'select * from products order by created_at desc, id desc'
+          : 'select * from products where active=true order by created_at desc, id desc'
+      );
       const ids = rows.map(row => row.id);
       const imageRows = ids.length ? await pool.query('select product_id, image_url, sort_order from product_images where product_id = any($1::bigint[]) order by sort_order asc, id asc', [ids]) : { rows: [] };
       const imagesByProduct = new Map();
@@ -42,8 +72,16 @@ module.exports = async function handler(request, response) {
         list.push({ url: image.image_url, sortOrder: image.sort_order });
         imagesByProduct.set(String(image.product_id), list);
       }
-      return response.status(200).json(rows.map(row => ({ ...mapProduct(row), images: imagesByProduct.get(String(row.id)) || [] })));
+      return response.status(200).json(
+        rows.map(row => {
+          const images = imagesByProduct.get(String(row.id)) || [];
+          return session ? { ...mapProduct(row), images } : publicProductResponse(row, images);
+        })
+      );
     }
+
+    const session = requireAdmin(request, response);
+    if (!session) return;
 
     if (request.method === 'POST' && route === 'import') {
       const client = await pool.connect(); let imported = 0;
@@ -115,7 +153,8 @@ module.exports = async function handler(request, response) {
         );
         await syncProductImages(client, product.id, Array.isArray(request.body.images) ? request.body.images : []);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'product_created',$3)", [product.id, product.sku, { stock: product.stock }]);
-        await client.query('commit'); return response.status(201).json(mapProduct(product));
+        const payload = await productResponse(client, product);
+        await client.query('commit'); return response.status(201).json(payload);
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
 
@@ -149,7 +188,8 @@ module.exports = async function handler(request, response) {
         );
         await syncProductImages(client, product.id, Array.isArray(request.body.images) ? request.body.images : []);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'product_updated',$3)", [id, product.sku, { previousStock: previous.stock, stock: product.stock }]);
-        await client.query('commit'); return response.status(200).json(mapProduct(product));
+        const payload = await productResponse(client, product);
+        await client.query('commit'); return response.status(200).json(payload);
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
 
@@ -163,13 +203,15 @@ module.exports = async function handler(request, response) {
           const active = typeof request.body.active === 'boolean' ? request.body.active : !previous.active;
           const { rows: [product] } = await client.query('update products set active=$1,updated_at=now() where id=$2 returning *', [active, id]);
           await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,$3,$4)", [id, product.sku, active ? 'product_activated' : 'product_deactivated', { active }]);
-          await client.query('commit'); return response.status(200).json(mapProduct(product));
+          const payload = await productResponse(client, product);
+          await client.query('commit'); return response.status(200).json(payload);
         }
         const adjustment = Number(request.body.adjustment || 0);
         const stock = Math.max(0, previous.stock + adjustment);
         const { rows: [product] } = await client.query('update products set stock=$1,updated_at=now() where id=$2 returning *', [stock, id]);
         await client.query("insert into inventory_history(product_id,sku,action,details) values($1,$2,'stock_adjusted',$3)", [id, product.sku, { previousStock: previous.stock, stock, adjustment: stock - previous.stock }]);
-        await client.query('commit'); return response.status(200).json(mapProduct(product));
+        const payload = await productResponse(client, product);
+        await client.query('commit'); return response.status(200).json(payload);
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
 

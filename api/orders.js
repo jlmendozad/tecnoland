@@ -1,11 +1,5 @@
 const { pool, ensureDatabase, mapProduct } = require('../lib/database');
-const { verifySession } = require('../lib/security');
-
-function sessionFromRequest(request) {
-  const header = request.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-  return verifySession(token);
-}
+const { sessionFromRequest } = require('../lib/security');
 
 async function orderResponse(orderId) {
   const { rows: [order] } = await pool.query('select * from orders where id=$1', [orderId]);
@@ -91,13 +85,14 @@ module.exports = async function handler(request, response) {
           await client.query('update products set stock=stock-$2, updated_at=now() where id=$1', [product.id, quantity]);
           orderItems.push({ product, quantity, subtotal: lineSubtotal });
         }
-        const total = Math.max(0, subtotal - Number(discount || 0));
+        const appliedDiscount = Math.min(subtotal, Math.max(0, Number(discount) || 0));
+        const total = subtotal - appliedDiscount;
         const marginTotal = total - costTotal;
         const orderNumber = `TR-${String(Date.now()).slice(-4)}`;
         const { rows: [order] } = await client.query(
           `insert into orders (order_number, created_by_user_id, customer_name, customer_phone, customer_address, customer_note, internal_note, courier_company, tracking_number, delivery_method, payment_method, status, subtotal, discount, total, cost_total, margin_total, courier_handoff_at, estimated_delivery_at)
            values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) returning *`,
-          [orderNumber, session.sub, customer.name, customer.phone || '', customer.address || '', customer.note || '', internalNote || '', courierCompany || '', trackingNumber || '', deliveryMethod, paymentMethod, request.body.status || 'pending', subtotal, Number(discount || 0), total, costTotal, marginTotal, request.body.courierHandoffAt || null, request.body.estimatedDeliveryAt || null]
+          [orderNumber, session.sub, customer.name, customer.phone || '', customer.address || '', customer.note || '', internalNote || '', courierCompany || '', trackingNumber || '', deliveryMethod, paymentMethod, request.body.status || 'pending', subtotal, appliedDiscount, total, costTotal, marginTotal, request.body.courierHandoffAt || null, request.body.estimatedDeliveryAt || null]
         );
         for (const entry of orderItems) {
           await client.query(

@@ -90,10 +90,21 @@ const server = http.createServer(async (request, response) => {
   const pathname = decodeURIComponent(request.url.split('?')[0]);
   try {
     if (pathname.startsWith('/api/')) return await handleApi(request, response, pathname);
-    const requestPath = pathname === '/' ? '/index.html' : pathname;
+    if (pathname === '/admin') {
+      response.writeHead(302, { Location: '/erptienda', 'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate' });
+      response.end();
+      return;
+    }
+    const requestPath = pathname === '/' ? '/index.html' : pathname === '/erptienda' ? '/admin.html' : pathname;
     const filePath = path.join(__dirname, requestPath);
     if (!filePath.startsWith(__dirname)) { response.writeHead(403).end('Forbidden'); return; }
-    fs.readFile(filePath, (error, content) => { if (error) { response.writeHead(error.code === 'ENOENT' ? 404 : 500).end('Not found'); return; } response.writeHead(200, { 'Content-Type': `${types[path.extname(filePath)] || 'application/octet-stream'}; charset=utf-8` }); response.end(content); });
+    fs.readFile(filePath, (error, content) => {
+      if (error) { response.writeHead(error.code === 'ENOENT' ? 404 : 500).end('Not found'); return; }
+      const headers = { 'Content-Type': `${types[path.extname(filePath)] || 'application/octet-stream'}; charset=utf-8` };
+      if (pathname === '/erptienda') headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate';
+      response.writeHead(200, headers);
+      response.end(content);
+    });
   } catch (error) { json(response, 400, { error: 'La solicitud no pudo procesarse.' }); }
 });
 

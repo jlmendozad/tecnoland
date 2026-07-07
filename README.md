@@ -38,6 +38,22 @@ npm run db:init
 
 Vercel inyecta de forma segura las variables de conexión de Supabase; `.env.local` nunca se publica en Git.
 
+## Variables de seguridad
+
+En producción debes configurar estas variables antes de desplegar:
+
+- `POSTGRES_URL` o `POSTGRES_URL_NON_POOLING`
+- `TECNOLAND_AUTH_SECRET` o `AUTH_SECRET`: secreto aleatorio largo para firmar sesiones
+- `TECNOLAND_ADMIN_PASSWORD`: solo se usa al crear el primer usuario administrador en una base vacía
+
+Los usuarios existentes no se modifican ni se eliminan por estos cambios. Si tu base ya tiene usuarios activos, `TECNOLAND_ADMIN_PASSWORD` no se vuelve a aplicar.
+
+## Endurecimiento aplicado
+
+- La sesión web ahora usa cookie `HttpOnly` en lugar de depender del token en JavaScript.
+- El panel mantiene la sesión del navegador actual, pero ya no persiste credenciales entre cierres completos del navegador.
+- `exceljs` se sirve localmente desde el proyecto para evitar depender de un CDN en producción y permitir una política CSP más estricta.
+
 ### Desarrollo local
 
 El inventario se guarda en `data/inventory.json` y cada movimiento se registra en `data/inventory-history.jsonl`. Ambos archivos están excluidos de Git, por lo que publicar cambios de código no reemplaza los datos ni su historial.

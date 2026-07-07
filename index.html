@@ -3,332 +3,185 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Panel de administración de inventario de Tecnoland" />
-  <meta name="app-version" content="2.1" />
-  <title>Tecnoland — Inventario</title>
+  <meta name="description" content="Catálogo online de Tecnoland con productos, disponibilidad y precios actualizados." />
+  <title>Tecnoland | Catálogo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.1" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="storefront.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="brand-mark">N</div>
-        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.1</small></div>
-      </div>
-      <nav class="main-nav" aria-label="Navegación principal">
-        <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
-        <a href="#" class="nav-item active" id="inventoryNav"><span data-icon="box"></span>Inventario <b id="navStockBadge">3</b></a>
-        <a href="#" class="nav-item" id="ordersNav"><span data-icon="bag"></span>Pedidos</a>
-        <a href="#" class="nav-item" id="deliveriesNav"><span data-icon="truck"></span>Entregas</a>
-        <div class="nav-label">Administración</div>
-        <a href="#" class="nav-item" id="partnersNav"><span data-icon="users"></span>Socios</a>
-        <a href="#" class="nav-item"><span data-icon="settings"></span>Configuración</a>
+  <div class="store-shell">
+    <header class="hero">
+      <nav class="topbar">
+        <a class="brand" href="#inicio" aria-label="Tecnoland inicio">
+          <span class="brand-mark">TL</span>
+          <span class="brand-copy">
+            <strong>Tecnoland</strong>
+            <small>Catálogo digital</small>
+          </span>
+        </a>
+        <div class="topbar-actions">
+          <a class="nav-link" href="#catalogo">Catálogo</a>
+          <a class="nav-link" href="#como-comprar">Cómo comprar</a>
+        </div>
       </nav>
-      <div class="user-card">
-        <div class="avatar">JM</div>
-        <div><strong>José Mendoza</strong><small>Administrador</small></div>
-        <button id="userCardButton" aria-label="Cambiar mi contraseña">•••</button>
-      </div>
-    </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <button class="icon-button menu-button" id="menuButton" aria-label="Abrir menú"><span data-icon="menu"></span></button>
-        <div class="global-search"><span data-icon="search"></span><input id="searchInput" type="search" placeholder="Buscar productos, categorías, pedidos o clientes..." autocomplete="off" aria-controls="globalSearchResults" aria-expanded="false" /><div class="global-search-results" id="globalSearchResults" hidden></div></div>
-        <div class="top-actions">
-          <button class="icon-button notification" aria-label="Notificaciones"><span data-icon="bell"></span><i></i></button>
-          <button class="secondary-button import-trigger" id="importButton"><span data-icon="upload"></span> Importar</button>
-          <button class="primary-button" id="addProductButton"><span>＋</span> Nuevo producto</button>
-        </div>
-      </header>
-
-      <section class="content">
-        <section id="ordersSection" hidden>
-          <div class="page-heading">
-            <div><p class="eyebrow">OPERACIONES / PEDIDOS</p><h1>Crear Nuevo Pedido</h1><p>Registra el cliente, agrega productos y descuenta inventario al confirmar.</p></div>
-            <div class="top-actions"><button class="secondary-button" id="backToInventory">Volver a inventario</button><button class="primary-button" id="openNewOrder">＋ Nuevo pedido</button></div>
+      <section class="hero-grid" id="inicio">
+        <div class="hero-copy">
+          <p class="eyebrow">TECNOLOGÍA CURADA</p>
+          <h1>El catálogo de Tecnoland ahora vive al frente.</h1>
+          <p class="hero-text">Descubre productos activos, revisa colores, consulta disponibilidad y encuentra rápido lo que necesitas sin entrar al panel de administración.</p>
+          <div class="hero-actions">
+            <a class="primary-cta" href="#catalogo">Ver catálogo</a>
+            <button class="secondary-cta" id="shareCatalogButton" type="button">Compartir catálogo</button>
           </div>
-          <div class="order-grid">
-            <section class="order-card">
-              <h2>Información del cliente</h2>
-              <div class="form-grid order-form">
-                <label class="span-2">Nombre completo<input id="orderCustomerName" placeholder="Ej. Roberto Gómez" /></label>
-                <label>Teléfono<input id="orderCustomerPhone" placeholder="+502 0000 0000" /></label>
-                <label>Dirección<textarea id="orderCustomerAddress" rows="3" placeholder="Calle, zona, referencias..."></textarea></label>
-                <label class="span-2">Notas internas<textarea id="orderInternalNote" rows="3" placeholder="Recordatorios para socios"></textarea></label>
-              </div>
-            </section>
-            <section class="order-card">
-              <h2>Checkout</h2>
-              <div class="form-grid order-form">
-                <label>Método de pago<select id="orderPaymentMethod"><option value="transfer">Transferencia</option><option value="courier">Cobro por courier</option></select></label>
-                <label>Estado<select id="orderStatus"><option value="pending">Pendiente de entrega al courier</option><option value="courier">En courier</option><option value="delivered">Entregado</option><option value="returned">Devuelto/Rechazado</option></select></label>
-                <label>Courier<input id="orderCourierCompany" placeholder="Empresa de entrega" /></label>
-                <label>Tracking<input id="orderTrackingNumber" placeholder="Número de tracking" /></label>
-                <label>Fecha entrega al courier<input id="orderCourierHandoffAt" type="date" /></label>
-                <label>Entrega estimada<input id="orderEstimatedDeliveryAt" type="date" /></label>
-                <label class="span-2">Descuento (Q)<input id="orderDiscount" type="number" min="0" step="0.01" value="0" /></label>
-              </div>
-            </section>
+          <div class="hero-stats" id="heroStats">
+            <article><strong id="statProducts">0</strong><span>productos activos</span></article>
+            <article><strong id="statCategories">0</strong><span>categorías</span></article>
+            <article><strong id="statStock">0</strong><span>unidades listadas</span></article>
           </div>
-          <section class="inventory-panel order-products-panel">
-            <div class="panel-header">
-              <div><h2>Selección de productos</h2><p id="orderProductCount">0 items seleccionados</p></div>
-              <button class="secondary-button" id="addOrderItem">Agregar producto</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>PRODUCTO</th><th>CANT.</th><th>UNITARIO</th><th>SUBTOTAL</th><th></th></tr></thead>
-                <tbody id="orderItemsTable"></tbody>
-              </table>
-            </div>
-          </section>
-          <section class="order-summary">
-            <div><small>Subtotal</small><strong id="orderSubtotal">Q0.00</strong></div>
-            <div><small>Costo total</small><strong id="orderCost">Q0.00</strong></div>
-            <div><small>Margen</small><strong id="orderMargin">Q0.00</strong></div>
-            <div><small>Total</small><strong id="orderTotal">Q0.00</strong></div>
-            <div class="modal-actions"><button class="secondary-button" id="cancelOrder">Cancelar</button><button class="primary-button" id="confirmOrder">Confirmar pedido</button></div>
-          </section>
-          <section class="inventory-panel" style="margin-top:18px" id="allOrdersPanel">
-            <div class="panel-header">
-              <div><h2>Todos los pedidos</h2><p>Busca, filtra por fecha y elimina pruebas</p></div>
-              <div class="filters">
-                <input id="ordersSearch" type="search" placeholder="Buscar pedido, cliente o número" />
-                <input id="ordersDateFrom" type="date" />
-                <input id="ordersDateTo" type="date" />
-              </div>
-            </div>
-            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th><th>ACCIONES</th></tr></thead><tbody id="allOrdersTable"></tbody></table></div>
-          </section>
-          <section class="inventory-panel" style="margin-top:18px">
-            <div class="panel-header">
-              <div><h2>Pedidos recientes</h2><p>Últimos 20 movimientos</p></div>
-              <button class="secondary-button" id="openAllOrders">Ver todos los pedidos</button>
-            </div>
-            <div class="table-wrap"><table><thead><tr><th>NÚMERO</th><th>CLIENTE</th><th>ESTADO</th><th>TOTAL</th><th>MARGEN</th><th>CREADO</th><th>ACCIONES</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
-          </section>
-        </section>
-        <section id="deliveriesSection" hidden>
-          <div class="page-heading delivery-heading">
-            <div><p class="eyebrow">OPERACIONES / ENTREGAS</p><h1>Logística y entregas</h1><p>Seguimiento de pedidos, couriers y fechas de entrega.</p></div>
-          </div>
-          <section class="delivery-stat-grid">
-            <article class="delivery-stat-card"><span class="delivery-stat-icon total" data-icon="bag"></span><div><small>TOTAL DE PEDIDOS</small><strong id="deliveryTotal">0</strong><p>Todos los registros</p></div></article>
-            <article class="delivery-stat-card"><span class="delivery-stat-icon transit" data-icon="truck"></span><div><small>EN TRÁNSITO</small><strong id="deliveryTransit">0</strong><p>En camino al cliente</p></div></article>
-            <article class="delivery-stat-card"><span class="delivery-stat-icon cancelled" data-icon="alert"></span><div><small>CANCELADOS</small><strong id="deliveryCancelled">0</strong><p>Devueltos o rechazados</p></div></article>
-            <article class="delivery-stat-card"><span class="delivery-stat-icon delivered" data-icon="check"></span><div><small>ENTREGADOS</small><strong id="deliveryDelivered">0</strong><p>Completados</p></div></article>
-          </section>
-          <section class="delivery-panel">
-            <div class="delivery-toolbar">
-              <div class="delivery-tabs" role="group" aria-label="Filtrar entregas">
-                <button class="delivery-tab active" data-delivery-filter="all">Todos</button>
-                <button class="delivery-tab" data-delivery-filter="transit">En tránsito</button>
-                <button class="delivery-tab" data-delivery-filter="cancelled">Cancelados</button>
-                <button class="delivery-tab" data-delivery-filter="delivered">Entregados</button>
-              </div>
-              <div class="delivery-search"><span data-icon="search"></span><input id="deliverySearch" type="search" placeholder="Buscar pedido, cliente o tracking..." /></div>
-            </div>
-            <div class="table-wrap"><table class="delivery-table"><thead><tr><th>PEDIDO</th><th>CLIENTE</th><th>ESTADO</th><th>COURIER / TRACKING</th><th>ENTREGADO A COURIER</th><th>ENTREGA ESTIMADA</th></tr></thead><tbody id="deliveriesTable"></tbody></table></div>
-            <div class="delivery-footer" id="deliveryFooter">0 pedidos</div>
-          </section>
-        </section>
-        <section id="inventorySection">
-        <div class="page-heading">
-          <div><p class="eyebrow">OPERACIONES / INVENTARIO</p><h1>Gestión de inventario</h1><p>Controla existencias, costos y rentabilidad en un solo lugar.</p></div>
-          <button class="secondary-button" id="exportButton"><span data-icon="download"></span> Exportar</button>
         </div>
 
-        <section class="hero-metric">
-          <div class="metric-icon blue"><span data-icon="wallet"></span></div>
-          <div><small>VALOR DEL INVENTARIO <span class="info">i</span></small><strong id="inventoryCost">Q0.00</strong><em>Basado en costo de adquisición</em></div>
-          <div class="metric-divider"></div>
-          <div class="metric-icon green"><span data-icon="trend"></span></div>
-          <div><small>MARGEN POTENCIAL</small><strong class="positive" id="potentialMargin">Q0.00</strong><em id="marginPercent">0% de rentabilidad estimada</em></div>
-          <div class="hero-decoration"></div>
+        <div class="hero-panel">
+          <div class="hero-card glass">
+            <span class="panel-label">Catálogo vivo</span>
+            <strong id="heroHighlightTitle">Cargando catálogo…</strong>
+            <p id="heroHighlightText">Estamos trayendo los productos más recientes para mostrarte disponibilidad, precio y presentación.</p>
+          </div>
+          <div class="hero-card accent">
+            <span class="panel-label">Actualización</span>
+            <strong id="heroUpdatedAt">En línea</strong>
+            <p>El catálogo se alimenta desde el administrador para evitar listados desactualizados.</p>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section class="catalog-section" id="catalogo">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2>Encuentra el producto ideal</h2>
+            <p>Filtra por categoría, disponibilidad o precio y revisa cada ficha antes de pedirla.</p>
+          </div>
+        </div>
+
+        <section class="catalog-toolbar">
+          <label class="search-field">
+            <span>Buscar</span>
+            <input id="searchInput" type="search" placeholder="Nombre, categoría o color" autocomplete="off" />
+          </label>
+          <label class="filter-field">
+            <span>Categoría</span>
+            <select id="categoryFilter">
+              <option value="all">Todas</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Disponibilidad</span>
+            <select id="availabilityFilter">
+              <option value="all">Todo</option>
+              <option value="in-stock">Disponible</option>
+              <option value="low-stock">Pocas unidades</option>
+              <option value="out-of-stock">Agotado</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Ordenar</span>
+            <select id="sortFilter">
+              <option value="featured">Destacados</option>
+              <option value="price-asc">Precio: menor a mayor</option>
+              <option value="price-desc">Precio: mayor a menor</option>
+              <option value="name-asc">Nombre A-Z</option>
+            </select>
+          </label>
         </section>
 
-        <section class="stat-grid">
-          <article class="stat-card"><div><small>UNIDADES EN STOCK</small><strong id="totalUnits">0</strong><p class="positive">↗ Inventario disponible</p></div><span class="stat-icon lavender" data-icon="layers"></span></article>
-          <article class="stat-card warning-card"><div><small>BAJO STOCK</small><strong id="lowStock">0</strong><p>Requieren tu atención</p></div><span class="stat-icon amber" data-icon="alert"></span></article>
-          <article class="stat-card"><div><small>VALOR A PRECIO DE VENTA</small><strong id="retailValue">Q0.00</strong><p>Ingreso potencial total</p></div><span class="stat-icon mint" data-icon="tag"></span></article>
-          <article class="stat-card"><div><small>PRODUCTOS ACTIVOS</small><strong id="activeProducts">0</strong><p><span class="status-dot"></span> Catálogo publicado</p></div><span class="stat-icon blue-soft" data-icon="check"></span></article>
-        </section>
+        <div class="category-pills" id="categoryPills"></div>
+        <div class="catalog-meta">
+          <strong id="resultsCount">0 productos</strong>
+          <button class="ghost-button" id="resetFiltersButton" type="button">Limpiar filtros</button>
+        </div>
 
-        <section class="inventory-panel">
-          <div class="panel-header">
-            <div class="panel-title-row">
-              <div><h2>Productos</h2><p id="resultCount">0 productos en el catálogo</p></div>
-              <div class="inline-search">
-                <span data-icon="search"></span>
-                <input id="productSearch" type="search" placeholder="Buscar producto, SKU o color..." />
-              </div>
-            </div>
-            <div class="filters">
-              <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="all">Todas las categorías</option></select>
-              <select id="stockFilter" aria-label="Filtrar por stock"><option value="all">Todo el stock</option><option value="low">Bajo stock</option><option value="available">Disponible</option><option value="out">Agotado</option><option value="inactive">Inactivos</option></select>
-            </div>
+        <section class="products-grid" id="productsGrid" aria-live="polite"></section>
+      </section>
+
+      <section class="steps-section" id="como-comprar">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">COMPRA SIMPLE</p>
+            <h2>Cómo usar el catálogo</h2>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th data-sort="name">PRODUCTO</th><th data-sort="supplierSku">SKU PROV.</th><th data-sort="internalSku">SKU INT.</th><th data-sort="category">CATEGORÍA</th><th data-sort="productColor">COLOR</th><th data-sort="cost">COSTO</th><th data-sort="price">PRECIO</th><th data-sort="margin">MARGEN</th><th data-sort="stock">STOCK</th><th data-sort="inventoryValue">VALOR (COSTO)</th><th></th></tr></thead>
-              <tbody id="productTable"></tbody>
-            </table>
-            <div class="empty-state" id="emptyState" hidden><span data-icon="search"></span><h3>No encontramos productos</h3><p>Prueba con otro término o ajusta los filtros.</p></div>
-          </div>
-          <div class="panel-footer"><span id="footerCount"></span><div><button disabled>‹</button><button class="current">1</button><button disabled>›</button></div></div>
-        </section>
-        </section>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card">
+            <strong>1. Explora</strong>
+            <p>Busca por categoría, color o rango de precio para reducir opciones rápido.</p>
+          </article>
+          <article class="step-card">
+            <strong>2. Elige</strong>
+            <p>Abre la ficha del producto para ver más detalle, imágenes y disponibilidad.</p>
+          </article>
+          <article class="step-card">
+            <strong>3. Solicita</strong>
+            <p>Copia la referencia del producto y compártela con Tecnoland por tu canal preferido.</p>
+          </article>
+        </div>
       </section>
     </main>
   </div>
-  <div class="modal-backdrop" id="orderItemModal" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="orderItemTitle">
-      <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderItemTitle">Agregar producto</h2></div><button class="icon-button" id="closeOrderItemModal" aria-label="Cerrar">×</button></div>
-      <form id="orderItemForm">
-        <div class="form-grid">
-          <div class="span-2 order-product-search-field"><label for="orderItemSearch">Buscar producto</label><div class="order-product-search"><input id="orderItemSearch" type="search" placeholder="Buscar por nombre o SKU..." autocomplete="off" /><div class="order-product-results" id="orderItemSearchResults" hidden></div></div></div>
-          <input id="orderItemProduct" type="hidden" />
-          <label>Cantidad<input id="orderItemQuantity" type="number" min="1" step="1" value="1" /></label>
+
+  <div class="product-modal-backdrop" id="productModal" hidden>
+    <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+      <button class="modal-close" id="closeProductModal" type="button" aria-label="Cerrar detalle">×</button>
+      <div class="product-modal-media">
+        <img id="productModalImage" alt="" />
+      </div>
+      <div class="product-modal-body">
+        <p class="eyebrow" id="productModalCategory">CATÁLOGO</p>
+        <h3 id="productModalTitle">Producto</h3>
+        <div class="modal-price-row">
+          <strong id="productModalPrice">Q0.00</strong>
+          <span class="stock-pill" id="productModalStock">Disponible</span>
         </div>
-        <div class="product-preview-box" id="orderProductPreview">
-          <div class="product-preview-image" id="orderProductPreviewImage">📦</div>
-          <div class="product-preview-copy">
-            <strong id="orderProductPreviewName">Selecciona un producto</strong>
-            <small id="orderProductPreviewMeta">Aquí verás SKU, categoría, color, precio y stock.</small>
-            <p id="orderProductPreviewDescription">Esto ayuda a responder dudas del cliente antes de agregar el artículo al pedido.</p>
-          </div>
+        <p class="modal-description" id="productModalDescription"></p>
+        <div class="detail-list">
+          <div><span>Color</span><strong id="productModalColor">Sin especificar</strong></div>
+          <div><span>Disponibilidad</span><strong id="productModalQuantity">0 unidades</strong></div>
         </div>
-        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelOrderItemModal">Cancelar</button><button type="submit" class="primary-button">Agregar</button></div>
-      </form>
+        <div class="modal-actions">
+          <button class="primary-cta" id="copyReferenceButton" type="button">Copiar referencia</button>
+          <button class="secondary-cta" id="shareProductButton" type="button">Compartir producto</button>
+        </div>
+      </div>
     </section>
   </div>
 
-  <div class="modal-backdrop" id="productModal" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-header"><div><p class="eyebrow">CATÁLOGO</p><h2 id="modalTitle">Nuevo producto</h2></div><button class="icon-button" id="closeModal" aria-label="Cerrar">×</button></div>
-      <form id="productForm">
-        <input type="hidden" id="productId" />
-        <div class="form-grid">
-          <label class="span-2">Nombre del producto<input id="productName" required placeholder="Ej. Audífonos inalámbricos" /></label>
-          <label>SKU proveedor<input id="productSku" required placeholder="TEC-AUD-001" /></label>
-          <label>SKU interno<input id="productInternalSku" readonly placeholder="Se generará automáticamente" /></label>
-          <label>Categoría<input id="productCategory" required placeholder="Audio" /></label>
-          <label>Color<input id="productColor" required placeholder="Ej. Negro mate" /></label>
-          <div class="photo-row">
-            <section class="photo-gallery-panel">
-              <div class="photo-gallery-head">
-                <div>
-                  <strong>Fotos del producto</strong>
-                  <small>Miniaturas, vista ampliada y eliminación</small>
-                </div>
-              </div>
-              <div class="photo-gallery-upload"><div class="photo-preview-grid" id="photoPreviewGrid"></div></div>
-            </section>
-            <section class="photo-upload-panel">
-              <label class="photo-upload-label">Cargar fotos</label>
-              <label class="photo-upload-button">
-                Elegir archivos
-                <input id="productPhotos" type="file" accept="image/*" multiple />
-              </label>
-              <div class="photo-upload-hint">Sube una o varias imágenes para que socios y clientes puedan revisarlas.</div>
-            </section>
+  <template id="productCardTemplate">
+    <article class="product-card">
+      <button class="product-card-button" type="button">
+        <div class="product-card-media">
+          <img class="product-image" alt="" />
+          <span class="stock-pill product-stock"></span>
+        </div>
+        <div class="product-card-body">
+          <p class="product-category"></p>
+          <h3 class="product-name"></h3>
+          <p class="product-description"></p>
+          <div class="product-footer">
+            <div>
+              <strong class="product-price"></strong>
+              <small class="product-meta"></small>
+            </div>
+            <span class="product-arrow">Ver</span>
           </div>
-          <label>Costo unitario (Q)<input id="productCost" required type="number" min="0" step="0.01" /></label>
-          <label>Precio de venta (Q)<input id="productPrice" required type="number" min="0" step="0.01" /></label>
-          <label>Stock actual<input id="productStock" required type="number" min="0" step="1" /></label>
-          <label>Alerta de stock bajo<input id="productThreshold" required type="number" min="0" step="1" value="5" /></label>
-          <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
         </div>
-        <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
-        <div class="modal-actions product-modal-actions"><div class="product-state-actions"><button type="button" class="secondary-button" id="copyProductButton" hidden>Copiar producto</button><button type="button" class="secondary-button" id="toggleProductActiveButton" hidden>Desactivar</button></div><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
-      </form>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="orderEditModal" hidden>
-    <section class="modal order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="orderEditTitle">
-      <div class="modal-header"><div><p class="eyebrow">PEDIDOS</p><h2 id="orderEditTitle">Detalle del pedido</h2></div><button class="icon-button" id="closeOrderEditModal" aria-label="Cerrar">×</button></div>
-      <div id="orderEditBody" style="padding:0 25px 25px"></div>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="photoViewerModal" hidden>
-    <section class="modal photo-viewer-modal" role="dialog" aria-modal="true" aria-labelledby="photoViewerTitle">
-      <div class="modal-header"><div><p class="eyebrow">FOTOS</p><h2 id="photoViewerTitle">Vista ampliada</h2></div><button class="icon-button" id="closePhotoViewer" aria-label="Cerrar">×</button></div>
-      <div class="photo-viewer-body">
-        <button type="button" class="photo-nav prev" id="photoViewerPrev" aria-label="Foto anterior">‹</button>
-        <img id="photoViewerImage" alt="Vista ampliada del producto" />
-        <button type="button" class="photo-nav next" id="photoViewerNext" aria-label="Foto siguiente">›</button>
-      </div>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="importModal" hidden>
-    <section class="modal import-modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
-      <div class="modal-header"><div><p class="eyebrow">CARGA MASIVA</p><h2 id="importTitle">Importar inventario</h2></div><button class="icon-button" id="closeImportModal" aria-label="Cerrar">×</button></div>
-      <div class="import-body">
-        <input id="inventoryFile" type="file" accept=".xlsx,.csv" hidden />
-        <button class="upload-zone" id="chooseFileButton" type="button">
-          <span class="upload-icon" data-icon="upload"></span>
-          <strong>Selecciona un Excel o CSV</strong>
-          <small>Formatos .xlsx o .csv · máximo 1,000 productos</small>
-        </button>
-        <div class="import-help"><strong>Columnas esperadas</strong><p>SKU, Producto, Categoría, Color, Costo, Precio, Stock, Alerta y Descripción. SKU y Producto son obligatorios.</p><button type="button" class="text-button" id="downloadTemplate">Descargar plantilla CSV</button></div>
-        <label class="import-strategy">Si el SKU ya existe
-          <select id="importStrategy">
-            <option value="replace">Reemplazar el producto</option>
-            <option value="add">Agregar cantidades al stock</option>
-          </select>
-        </label>
-        <div class="import-preview" id="importPreview" hidden>
-          <div class="preview-summary" id="previewSummary"></div>
-          <div class="preview-table-wrap"><table><thead><tr><th>FILA</th><th>SKU</th><th>PRODUCTO</th><th>ACCIÓN</th><th>ESTADO</th></tr></thead><tbody id="previewTable"></tbody></table></div>
-        </div>
-        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelImport">Cancelar</button><button type="button" class="primary-button" id="confirmImport" disabled>Importar productos</button></div>
-      </div>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="usersModal" hidden>
-    <section class="modal users-modal" role="dialog" aria-modal="true" aria-labelledby="usersTitle">
-      <div class="modal-header"><div><p class="eyebrow">ADMINISTRACIÓN</p><h2 id="usersTitle">Socios y accesos</h2></div><button class="icon-button" id="closeUsersModal" aria-label="Cerrar">×</button></div>
-      <div class="users-body">
-        <form id="userForm" class="user-form">
-          <label>Nombre completo<input id="userFullName" required placeholder="Nombre del socio" /></label>
-          <label>Usuario<input id="userUsername" required placeholder="jlmendoza" /></label>
-          <label>Contraseña<input id="userPassword" required type="password" placeholder="Crear contraseña" /></label>
-          <label>Rol<select id="userRole"><option value="socio">Socio</option><option value="admin">Administrador</option></select></label>
-          <div class="modal-actions"><button type="button" class="secondary-button" id="cancelUserModal">Cancelar</button><button type="submit" class="primary-button">Crear usuario</button></div>
-        </form>
-        <div class="users-list-wrap">
-          <h3>Usuarios activos</h3>
-          <div id="usersList"></div>
-        </div>
-      </div>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="loginModal" hidden>
-    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <div class="modal-header"><div><p class="eyebrow">ACCESO</p><h2 id="loginTitle">Entrar a Tecnoland</h2></div></div>
-      <form id="loginForm" class="login-form">
-        <label>Usuario<input id="loginUsername" required autocomplete="username" /></label>
-        <label>Contraseña<input id="loginPassword" required type="password" autocomplete="current-password" /></label>
-        <div class="modal-actions"><button type="submit" class="primary-button">Ingresar</button></div>
-      </form>
-    </section>
-  </div>
-  <div class="modal-backdrop" id="passwordModal" hidden>
-    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
-      <div class="modal-header"><div><p class="eyebrow">SEGURIDAD</p><h2 id="passwordTitle">Cambiar mi contraseña</h2></div><button class="icon-button" id="closePasswordModal" aria-label="Cerrar">×</button></div>
-      <form id="passwordForm" class="login-form">
-        <label>Contraseña actual<input id="currentPassword" required type="password" autocomplete="current-password" /></label>
-        <label>Nueva contraseña<input id="newPassword" required type="password" autocomplete="new-password" /></label>
-        <div class="modal-actions"><button type="button" class="secondary-button" id="cancelPasswordModal">Cancelar</button><button type="submit" class="primary-button">Actualizar</button></div>
-      </form>
-    </section>
-  </div>
-  <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous" onerror="this.src='https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'"></script>
-  <script src="app.js?v=2.1"></script>
+      </button>
+    </article>
+  </template>
+
+  <script src="storefront.js"></script>
 </body>
 </html>
