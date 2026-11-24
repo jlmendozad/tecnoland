@@ -1,5 +1,6 @@
 const { pool, ensureDatabase, mapProduct } = require('../lib/database');
 const { sessionFromRequest } = require('../lib/security');
+const { actor } = require('../lib/history');
 
 async function orderResponse(orderId) {
   const { rows: [order] } = await pool.query('select * from orders where id=$1', [orderId]);
@@ -101,8 +102,8 @@ module.exports = async function handler(request, response) {
           );
         }
         await client.query(
-          "insert into inventory_history(product_id,sku,action,details) select id,sku,'order_created',jsonb_build_object('orderNumber',$1::text,'items',$2::jsonb) from products where id = any($3::bigint[])",
-          [orderNumber, JSON.stringify(orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity }))), orderItems.map(item => Number(item.product.id))]
+          "insert into inventory_history(product_id,sku,action,details,user_id,user_name) select id,sku,'order_created',jsonb_build_object('orderNumber',$1::text,'items',$2::jsonb),$4,$5 from products where id = any($3::bigint[])",
+          [orderNumber, JSON.stringify(orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity }))), orderItems.map(item => Number(item.product.id)), actor(session).userId, actor(session).userName]
         );
         await client.query('commit');
         return response.status(201).json(await orderResponse(order.id));
@@ -133,7 +134,7 @@ module.exports = async function handler(request, response) {
           }
         }
         await client.query(
-          `insert into inventory_history(product_id,sku,action,details)
+          `insert into inventory_history(product_id,sku,action,details,user_id,user_name)
            select product_id, sku, 'order_deleted', jsonb_build_object(
              'order', jsonb_build_object(
                'id', $1::bigint,
@@ -147,7 +148,7 @@ module.exports = async function handler(request, response) {
                'timezone', 'America/Guatemala'
              ),
              'items', $8::jsonb
-           )
+           ), $9, $10
            from order_items where order_id=$1`,
           [
             order.id,
@@ -157,7 +158,9 @@ module.exports = async function handler(request, response) {
             order.total,
             order.created_at,
             String(session.sub),
-            JSON.stringify(items.map(item => ({ sku: item.sku, productName: item.product_name, quantity: item.quantity, unitPrice: item.unit_price, unitCost: item.unit_cost, subtotal: item.subtotal })))
+            JSON.stringify(items.map(item => ({ sku: item.sku, productName: item.product_name, quantity: item.quantity, unitPrice: item.unit_price, unitCost: item.unit_cost, subtotal: item.subtotal }))),
+            actor(session).userId,
+            actor(session).userName
           ]
         );
         await client.query('delete from order_items where order_id=$1', [id]);

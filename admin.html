@@ -5,25 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Panel de administración e inventario de Tecnoland" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" />
-  <meta name="app-version" content="2.13" />
+  <meta name="app-version" content="2.14" />
   <title>Tecnoland Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.12" />
+  <link rel="stylesheet" href="styles.css?v=2.14" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark" id="brandMark">N</div>
-        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.13</small></div>
+        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.14</small></div>
       </div>
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
         <a href="#" class="nav-item active" id="inventoryNav"><span data-icon="box"></span>Inventario <b id="navStockBadge" hidden></b></a>
         <a href="#" class="nav-item" id="ordersNav"><span data-icon="bag"></span>Pedidos</a>
         <a href="#" class="nav-item" id="deliveriesNav"><span data-icon="truck"></span>Entregas</a>
+        <a href="#" class="nav-item" id="historyNav"><span data-icon="history"></span>Historial</a>
         <div class="nav-label">Administración</div>
         <a href="#" class="nav-item" id="partnersNav"><span data-icon="users"></span>Socios</a>
         <a href="#" class="nav-item" id="settingsNav"><span data-icon="settings"></span>Configuración</a>
@@ -90,6 +91,34 @@
             </div>
             <div class="table-wrap"><table class="delivery-table"><thead><tr><th>PEDIDO</th><th>CLIENTE</th><th>ESTADO</th><th>COURIER / TRACKING</th><th>ENTREGADO A COURIER</th><th>ENTREGA ESTIMADA</th></tr></thead><tbody id="deliveriesTable"></tbody></table></div>
             <div class="delivery-footer" id="deliveryFooter">0 pedidos</div>
+          </section>
+        </section>
+        <section id="historySection" hidden>
+          <div class="page-heading">
+            <div><p class="eyebrow">OPERACIONES / HISTORIAL</p><h1>Historial de cambios</h1><p>Quién cambió qué y cuándo. Si algo se cambió por error, usa Restaurar para deshacerlo.</p></div>
+          </div>
+          <section class="inventory-panel">
+            <div class="panel-header">
+              <div class="panel-title-row">
+                <div><h2>Cambios</h2><p id="historyCount">Cargando…</p></div>
+                <label class="inline-search"><span data-icon="search"></span><input id="historySearch" type="search" placeholder="Buscar producto o SKU..." aria-label="Buscar en el historial" /></label>
+              </div>
+              <div class="filters">
+                <select id="historyUser" aria-label="Filtrar por usuario"><option value="">Todos los usuarios</option></select>
+                <select id="historyAction" aria-label="Filtrar por tipo de cambio">
+                  <option value="">Todos los cambios</option>
+                  <option value="edits">Ediciones y restauraciones</option>
+                  <option value="stock">Ajustes de stock</option>
+                  <option value="status">Activar / desactivar</option>
+                  <option value="created">Productos creados</option>
+                  <option value="deleted">Productos eliminados</option>
+                  <option value="imports">Importaciones</option>
+                  <option value="orders">Pedidos</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap"><table class="history-table"><thead><tr><th>FECHA</th><th>USUARIO</th><th>PRODUCTO</th><th>ACCIÓN</th><th>CAMBIOS</th><th></th></tr></thead><tbody id="historyTable"></tbody></table></div>
+            <div class="panel-footer history-footer"><span id="historyFooter"></span><button type="button" class="secondary-button history-more" id="historyMore" hidden>Cargar más</button></div>
           </section>
         </section>
         <section id="settingsSection" hidden>
@@ -244,7 +273,7 @@
           <label class="span-2">Descripción<textarea id="productDescription" rows="3" placeholder="Características clave para mostrar a socios y clientes"></textarea></label>
         </div>
         <div class="margin-preview"><span>Margen unitario estimado</span><strong id="formMargin">Q0.00 (0%)</strong></div>
-        <div class="modal-actions product-modal-actions"><div class="product-state-actions"><button type="button" class="secondary-button" id="copyProductButton" hidden>Copiar producto</button><button type="button" class="secondary-button" id="toggleProductActiveButton" hidden>Desactivar</button></div><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
+        <div class="modal-actions product-modal-actions"><div class="product-state-actions"><button type="button" class="secondary-button" id="copyProductButton" hidden>Copiar producto</button><button type="button" class="secondary-button" id="productHistoryButton" hidden>Historial</button><button type="button" class="secondary-button" id="toggleProductActiveButton" hidden>Desactivar</button></div><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button">Guardar producto</button></div>
       </form>
     </section>
   </div>
@@ -393,6 +422,6 @@
   </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
   <script src="exceljs.min.js"></script>
-  <script src="app.js?v=2.13"></script>
+  <script src="app.js?v=2.14"></script>
 </body>
 </html>
