@@ -54,7 +54,8 @@ const HISTORY_ACTION_GROUPS = {
   created: ['product_created', 'bulk_created', 'migration_import', 'initial_seed'],
   deleted: ['product_deleted'],
   imports: ['bulk_created', 'bulk_updated', 'migration_import'],
-  orders: ['order_created', 'order_deleted']
+  orders: ['order_created', 'order_deleted'],
+  users: ['password_reset']
 };
 
 const HISTORY_NAME = "coalesce(p.name, h.after_state->>'name', h.before_state->>'name', h.details->'product'->>'name', '')";
