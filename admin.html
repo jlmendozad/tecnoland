@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Panel de administración e inventario de Tecnoland" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" />
-  <meta name="app-version" content="2.12" />
+  <meta name="app-version" content="2.13" />
   <title>Tecnoland Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark" id="brandMark">N</div>
-        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.12</small></div>
+        <div><strong>Tecno<span>land</span></strong><small>Centro de operaciones · v2.13</small></div>
       </div>
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#" class="nav-item"><span data-icon="grid"></span>Resumen</a>
@@ -107,6 +107,17 @@
                 <button type="button" class="secondary-button" id="changeLogoButton"><span data-icon="upload"></span> Cambiar imagen</button>
                 <button type="button" class="secondary-button danger-button" id="removeLogoButton">Quitar logo</button>
                 <small>Formatos JPG, PNG, WebP o SVG. Máximo 1 MB.</small>
+              </div>
+            </div>
+          </section>
+          <section class="settings-panel" style="margin-top:18px">
+            <div class="panel-header">
+              <div><h2>Fotos de productos</h2><p>Las fotos nuevas se comprimen al subirlas. Usa este botón para reducir las fotos pesadas que ya estaban cargadas.</p></div>
+            </div>
+            <div class="settings-body">
+              <div class="logo-controls">
+                <button type="button" class="secondary-button" id="optimizePhotosButton">Optimizar fotos</button>
+                <small id="optimizePhotosStatus" aria-live="polite">Las fotos de más de 350 KB se reducen a 1600 px. La calidad en pantalla se mantiene.</small>
               </div>
             </div>
           </section>
@@ -382,6 +393,6 @@
   </div>
   <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Producto guardado</strong><small>El inventario se actualizó correctamente.</small></div></div>
   <script src="exceljs.min.js"></script>
-  <script src="app.js?v=2.12"></script>
+  <script src="app.js?v=2.13"></script>
 </body>
 </html>
