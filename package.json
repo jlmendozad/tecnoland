@@ -7,6 +7,7 @@
     "start": "node server.js",
     "db:init": "node --env-file=.env.local scripts/init-db.js",
     "db:init:deploy": "node scripts/init-db.js",
+    "db:migrate": "node scripts/migrate-db.js",
     "test:integration": "node --env-file=.env.local scripts/test-inventory-api.js"
   },
   "dependencies": {
