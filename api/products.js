@@ -7,22 +7,42 @@ const sendError = (response, error) => {
   return response.status(500).json({ error: 'No fue posible procesar la solicitud.' });
 };
 
+const IMAGE_REF = /^\/api\/images\/(\d+)(?:\?.*)?$/;
+
+// Una foto ya guardada viaja al navegador como "/api/images/<id>". Al guardar el
+// producto, esas referencias se convierten de nuevo en la foto original antes de
+// reemplazar la lista, para no perder fotos que no cambiaron.
 async function syncProductImages(client, productId, images = []) {
+  const incoming = images.map(image => String((image && typeof image === 'object' ? image.url : image) || '').trim()).filter(Boolean);
+  const referencedIds = incoming.map(url => IMAGE_REF.exec(url)?.[1]).filter(Boolean).map(Number);
+  const existing = new Map();
+  if (referencedIds.length) {
+    const { rows } = await client.query('select id, image_url from product_images where id = any($1::bigint[])', [referencedIds]);
+    rows.forEach(row => existing.set(Number(row.id), row.image_url));
+  }
+  const resolved = incoming.map(url => {
+    const ref = IMAGE_REF.exec(url);
+    return ref ? existing.get(Number(ref[1])) : url;
+  }).filter(Boolean);
   await client.query('delete from product_images where product_id=$1', [productId]);
-  for (let index = 0; index < images.length; index += 1) {
-    await client.query('insert into product_images (product_id, image_url, sort_order) values ($1,$2,$3)', [productId, String(images[index]).trim(), index]);
+  for (let index = 0; index < resolved.length; index += 1) {
+    await client.query('insert into product_images (product_id, image_url, sort_order) values ($1,$2,$3)', [productId, resolved[index], index]);
   }
 }
+
+// Columnas de product_images sin el contenido pesado de las fotos guardadas en la base.
+const IMAGE_COLUMNS = "id, product_id, sort_order, case when image_url like 'data:%' then null else image_url end as external_url";
+const imageEntry = row => ({ url: row.external_url || `/api/images/${row.id}`, sortOrder: row.sort_order });
 
 async function productResponse(client, product) {
   const source = client || pool;
   const { rows } = await source.query(
-    'select image_url, sort_order from product_images where product_id=$1 order by sort_order asc, id asc',
+    `select ${IMAGE_COLUMNS} from product_images where product_id=$1 order by sort_order asc, id asc`,
     [product.id]
   );
   return {
     ...mapProduct(product),
-    images: rows.map(image => ({ url: image.image_url, sortOrder: image.sort_order }))
+    images: rows.map(imageEntry)
   };
 }
 
@@ -65,11 +85,11 @@ module.exports = async function handler(request, response) {
           : 'select * from products where active=true order by created_at desc, id desc'
       );
       const ids = rows.map(row => row.id);
-      const imageRows = ids.length ? await pool.query('select product_id, image_url, sort_order from product_images where product_id = any($1::bigint[]) order by sort_order asc, id asc', [ids]) : { rows: [] };
+      const imageRows = ids.length ? await pool.query(`select ${IMAGE_COLUMNS} from product_images where product_id = any($1::bigint[]) order by sort_order asc, id asc`, [ids]) : { rows: [] };
       const imagesByProduct = new Map();
       for (const image of imageRows.rows) {
         const list = imagesByProduct.get(String(image.product_id)) || [];
-        list.push({ url: image.image_url, sortOrder: image.sort_order });
+        list.push(imageEntry(image));
         imagesByProduct.set(String(image.product_id), list);
       }
       return response.status(200).json(

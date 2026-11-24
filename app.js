@@ -124,10 +124,58 @@ const normalizeHeader=value=>String(value||'').normalize('NFD').replace(/[\u0300
 const aliases={sku:['sku','codigo','codigoproducto'],name:['producto','nombre','nombreproducto'],category:['categoria'],productColor:['color'],cost:['costo','costounitario','costogtq'],price:['precio','precioventa','pvp','preciogtq'],stock:['stock','cantidad','existencia'],threshold:['alerta','stockminimo','alertastockbajo'],description:['descripcion']};
 function numericValue(value){if(typeof value==='number')return value;let text=String(value??'').replace(/[Q$\s]/g,'');if(text.includes(',')&&text.includes('.'))text=text.replaceAll(',','');else if(text.includes(','))text=text.replace(',','.');return Number(text)}
 function valueByAlias(row,key){const found=Object.entries(row).find(([header])=>aliases[key].includes(normalizeHeader(header)));return found?.[1]??''}
+// Fotos: se reducen a un máximo de 1600 px y se guardan como WebP (o JPEG si el
+// navegador no genera WebP). Una foto de 2 MB queda en ~100-200 KB.
+const PHOTO_MAX_SIDE=1600,PHOTO_QUALITY=0.82,PHOTO_TARGET_BYTES=350*1024;
+function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('No se pudo leer la imagen.'));reader.readAsDataURL(blob)})}
+function canvasToBlob(canvas,type,quality){return new Promise(resolve=>canvas.toBlob(resolve,type,quality))}
+async function compressImageBlob(blob,{maxSide=PHOTO_MAX_SIDE,quality=PHOTO_QUALITY}={}){
+ const original={dataUrl:null,bytes:blob.size};
+ if(/svg|gif/.test(blob.type||''))return {...original,dataUrl:await blobToDataUrl(blob)};
+ let bitmap;
+ try{bitmap=await createImageBitmap(blob)}catch{return {...original,dataUrl:await blobToDataUrl(blob)}}
+ const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+ const context=canvas.getContext('2d');context.fillStyle='#ffffff';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+ let output=await canvasToBlob(canvas,'image/webp',quality);
+ if(!output||output.type!=='image/webp')output=await canvasToBlob(canvas,'image/jpeg',quality);
+ if(!output||output.size>=blob.size)return {...original,dataUrl:await blobToDataUrl(blob)};
+ return {dataUrl:await blobToDataUrl(output),bytes:output.size};
+}
 async function readProductFiles(fileList){
  const files=[...fileList||[]].filter(file=>String(file.type||'').startsWith('image/'));
  if(!files.length)return [];
- return Promise.all(files.map(file=>new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(file)})));
+ return Promise.all(files.map(async file=>(await compressImageBlob(file)).dataUrl));
+}
+function productPayload(product,images){return {name:product.name,sku:product.supplierSku||product.sku,category:product.category,productColor:product.productColor||'',cost:Number(product.cost||0),price:Number(product.price||0),stock:Number(product.stock||0),threshold:Number(product.threshold||0),description:product.description||'',emoji:product.emoji||'📦',themeColor:product.themeColor||'#e8ecf5',images}}
+async function optimizeStoredPhotos(){
+ const button=$('#optimizePhotosButton'),status=$('#optimizePhotosStatus');if(!button||!status)return;
+ button.disabled=true;let checked=0,optimized=0,savedBytes=0;
+ try{
+  for(const product of [...products]){
+   const refs=(product.images||[]).map(image=>typeof image==='string'?image:image.url).filter(Boolean);
+   if(!refs.length)continue;
+   let touched=false;const next=[];
+   for(const ref of refs){
+    checked+=1;status.textContent=`Revisando foto ${checked}…`;
+    if(!ref.startsWith('/api/images/')){next.push(ref);continue}
+    const response=await fetch(ref,{credentials:'same-origin'});if(!response.ok)throw new Error(`No se pudo leer una foto de ${product.name}.`);
+    const blob=await response.blob();
+    if(blob.size<=PHOTO_TARGET_BYTES){next.push(ref);continue}
+    const smaller=await compressImageBlob(blob);
+    if(smaller.bytes>=blob.size){next.push(ref);continue}
+    savedBytes+=blob.size-smaller.bytes;next.push(smaller.dataUrl);touched=true;
+   }
+   if(!touched)continue;
+   status.textContent=`Guardando ${product.name}…`;
+   const saved=await api(`/products/${product.id}`,{method:'PUT',body:JSON.stringify(productPayload(product,next))});
+   const index=products.findIndex(item=>item.id===product.id);if(index>=0)products[index]=saved;optimized+=1;
+  }
+  render();
+  status.textContent=optimized?`Listo: ${optimized} producto${optimized===1?'':'s'} optimizado${optimized===1?'':'s'}, ${(savedBytes/1048576).toFixed(1)} MB menos.`:'Todas las fotos ya están optimizadas.';
+  if(optimized)toast('Fotos optimizadas','El catálogo ahora carga mucho más rápido.');
+ }catch(error){status.textContent=error.message||'No se pudieron optimizar las fotos.'}
+ finally{button.disabled=false}
 }
 function isFileDrag(event){
  const types=[...event.dataTransfer?.types||[]];
@@ -198,7 +246,7 @@ $('#saveOrderAndLeave').addEventListener('click',()=>{const destination=pendingO
 $('#discardOrderAndLeave').addEventListener('click',()=>{const destination=pendingOrderSection;resetOrderDraft();$('#orderLeaveModal').hidden=true;pendingOrderSection=null;if(destination)navigateToSection(destination)});
 function closeOrderSuccessModal(){$('#orderSuccessModal').hidden=true}
 $('#closeOrderSuccessModal').addEventListener('click',closeOrderSuccessModal);closeOnBackdrop('#orderSuccessModal',closeOrderSuccessModal);
-$('#orderEditBody').addEventListener('change',event=>{if(event.target.id!=='orderReceiptPhoto')return;const file=event.target.files?.[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)){alert('Selecciona una imagen JPG, PNG o WebP.');event.target.value='';return}if(file.size>2*1024*1024){alert('La foto de la boleta no puede superar 2 MB.');event.target.value='';return}const reader=new FileReader();reader.onload=()=>{orderReceiptImage=reader.result;renderOrderReceiptPreview()};reader.readAsDataURL(file)});
+$('#orderEditBody').addEventListener('change',event=>{if(event.target.id!=='orderReceiptPhoto')return;const file=event.target.files?.[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)){alert('Selecciona una imagen JPG, PNG o WebP.');event.target.value='';return}if(file.size>15*1024*1024){alert('La foto de la boleta no puede superar 15 MB.');event.target.value='';return}compressImageBlob(file,{maxSide:2000,quality:0.85}).then(result=>{orderReceiptImage=result.dataUrl;renderOrderReceiptPreview()}).catch(error=>alert(error.message))});
 $('#orderEditBody').addEventListener('submit',async event=>{const form=event.target.closest('#orderUpdateForm');if(!form)return;event.preventDefault();const button=form.querySelector('button[type="submit"]'),amount=$('#orderCourierAmount');button.disabled=true;try{const payload={status:$('#orderUpdateStatus').value,receiptInfo:$('#orderReceiptInfo').value.trim(),receiptImageUrl:orderReceiptImage};if(amount)payload.courierAmountReceived=Number(amount.value||0);const updated=await api(`/orders/${form.dataset.orderId}`,{method:'PATCH',body:JSON.stringify(payload)});const index=orders.findIndex(order=>order.id===updated.id);if(index>=0)orders[index]={...orders[index],...updated};renderOrders();renderDeliveries();renderGlobalSearch();toast('Pedido actualizado','Estado, cobro y boleta guardados.');await openOrderDetail(updated.id)}catch(error){alert(error.message)}finally{button.disabled=false}});
 $('#backToInventory').addEventListener('click',()=>setSection('inventory'));
 $('#openNewOrder').addEventListener('click',openOrderCreateModal);
@@ -217,3 +265,4 @@ $('#confirmOrder').addEventListener('click',async e=>{e.preventDefault();const b
 $('#sidebarBackdrop').addEventListener('click',closeSidebar);
 document.addEventListener('pointerdown',closeSidebarFromOutside);
 $('#menuButton').addEventListener('click',toggleSidebar);loadProducts().catch(showInventoryLoadError);
+$('#optimizePhotosButton')?.addEventListener('click',optimizeStoredPhotos);
