@@ -38,6 +38,23 @@ npm run db:init
 
 Vercel inyecta de forma segura las variables de conexión de Supabase; `.env.local` nunca se publica en Git.
 
+## Migrar a otra base Postgres
+
+La app funciona con cualquier Postgres. Toma la conexión de `DATABASE_URL`, `POSTGRES_URL` o `POSTGRES_URL_NON_POOLING`, en ese orden. Para copiar todos los datos de una base a otra (por ejemplo, de Supabase a Neon):
+
+```bash
+SOURCE_DATABASE_URL="postgres://...origen..." \
+TARGET_DATABASE_URL="postgres://...destino..." \
+npm run db:migrate
+```
+
+- Crea las tablas en el destino sin productos de ejemplo ni usuario inicial.
+- Copia usuarios, productos, imágenes, historial, pedidos y la configuración del banner, y verifica que los conteos coincidan.
+- Corre en una sola transacción: si algo falla, el destino queda vacío como estaba. El origen solo se lee.
+- Si el destino ya tiene datos, se detiene. Usa `--replace` para borrarlos y copiar de nuevo.
+
+Corre la migración **antes** de conectar la base nueva al proyecto en Vercel y volver a desplegar. Si el despliegue encuentra la base vacía, carga los productos de ejemplo y crea un usuario `admin` nuevo.
+
 ## Variables de seguridad
 
 En producción debes configurar estas variables antes de desplegar:
